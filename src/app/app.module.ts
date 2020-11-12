@@ -3,10 +3,12 @@ import { NgModule } from '@angular/core';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { DualSelectorComponent } from './dual-selector/dual-selector.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    DualSelectorComponent
   ],
   imports: [
     BrowserModule,

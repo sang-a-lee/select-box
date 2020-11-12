@@ -1,0 +1,33 @@
+* {
+  box-sizing: border-box;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+
+  .options {
+    .items {
+      display: flex;
+      flex-direction: column;
+      height: 80vh;
+      overflow-y: scroll;
+
+      button {
+        margin-top: 0.1rem;
+        width: 100%;
+      }
+    }
+  }
+
+  .action {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    button {
+      width: 100%;
+    }
+  }
+}

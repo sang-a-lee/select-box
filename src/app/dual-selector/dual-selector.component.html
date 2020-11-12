@@ -1,0 +1,39 @@
+<div class="container">
+  <div class="options">
+    <h1>Available options</h1>
+
+    <div class="items">
+      <div *ngFor="let item of data">
+        <button *ngIf="!item.visible" (click)="onSelect($event, item)">
+          {{ item.name }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="action">
+    <button (click)="execute('add-all')">
+      <strong>add all</strong>
+    </button>
+    <button (click)="execute('add')">
+      add
+    </button>
+    <button (click)="execute('remove-all')">
+      <strong>remove all</strong>
+    </button>
+    <button (click)="execute('remove')">
+      remove
+    </button>
+  </div>
+
+  <div class="options">
+    <h1>Selected options</h1>
+    <div class="items">
+      <div *ngFor="let item of data">
+        <button *ngIf="item.visible" (click)="onSelect($event, item)">
+          {{ item.name }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
