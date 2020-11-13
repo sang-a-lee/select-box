@@ -1,5 +1,11 @@
-import { Component, OnInit, HostListener } from '@angular/core';
-import { sample1 } from '../../resource/data';
+/*
+1. 데이터 바인딩 사용해서 외부에서 sample data를 가공해서 넣기 
+2. bootstrap의 list-groups를 사용 (✔️)
+3. add, remove 방식 변경하기 (✔️)
+4. 두가지 이상의 데이터를 dual-selector에서 작동시킬수 있게 하기 (편집됨) 
+*/
+
+import { Component, OnInit, Input } from '@angular/core';
 
 interface Item {
   id: number;
@@ -11,13 +17,7 @@ interface Item {
   route: string;
   ordinal: number;
   visible: boolean;
-}
-
-enum KEY_CODE {
-  UP_ARROW = 38,
-  DOWN_ARROW = 40,
-  RIGHT_ARROW = 39,
-  LEFT_ARROW = 37,
+  focused: boolean;
 }
 
 @Component({
@@ -26,74 +26,174 @@ enum KEY_CODE {
   styleUrls: ['./dual-selector.component.scss'],
 })
 export class DualSelectorComponent implements OnInit {
-  data: Item[];
-  focused = new Set();
+  @Input() data: Item[];
+  available: Item[];
+  selected: Item[];
+  focuses = []; // 중복 시, 아이템 삭제
 
   constructor() {}
 
-  // 버튼(add, add-all, remove, remove-all)을 클릭하면 그에 따른 작업을 하는 함수.
-  // add와 remove는 focused된 버튼만 visible 속성을 변경하고,
-  // add-all과 remove-all은 모두 옮기는 것 이므로 data에 있는 모든 item들의 visible 속성을 변경한다
-  execute(command: string): void {
-    switch (command) {
-      case 'add':
-        this.data.map(item =>
-          this.focused.has(item.id) ? (item.visible = true) : item
-        );
-        break;
-
-      case 'add-all':
-        this.data.map(item => (item.visible = true));
-        break;
-
-      case 'remove':
-        this.data.map(item =>
-          this.focused.has(item.id) ? (item.visible = false) : item
-        );
-        break;
-
-      case 'remove-all':
-        this.data.map(item => (item.visible = false));
-        break;
+  arrangeOrdinal(list: Item[]): void {
+    for (let i = 0; i < list.length; i++) {
+      list[i].ordinal = i;
     }
+  }
 
-    this.focused = new Set();
-    this.initDataOrdinal();
+  // selected 로 옮김 (->)
+  toSelected(): void {
+    // available에 있는 아이템들 중
+    // focuses의 id와 매칭시켜서
+    // 해당 되는 애들은 selected로 옮기고
+    // 동시에 available에서 제외
+
+    const ret = [];
+
+    // available -> selected
+    this.focuses.forEach(focusId => {
+      const item = this.available.filter(({ id }) => id === focusId)[0];
+      item.visible = true;
+      item.focused = false;
+      ret.push(item);
+    });
+
+    this.selected = [...this.selected, ...ret];
+
+    // ordinal 초기화
+    // for (let i = 0; i < this.selected.length; i++) {
+    //   this.selected[i].ordinal = i;
+    // }
+    this.arrangeOrdinal(this.selected);
+
+    // available 청소
+    this.available = this.available.filter(
+      ({ id }) => !this.focuses.includes(id)
+    );
+
+    // for (let i = 0; i < this.available.length; i++) {
+    //   this.available[i].ordinal = i;
+    // }
+    this.arrangeOrdinal(this.available);
+
+    // 초기화
+    this.focuses = [];
+  }
+
+  // selected 로 옮김 (->)
+  toSelectedAll(): void {
+    const ret = [];
+
+    // available -> selected
+    this.available.forEach(item => {
+      item.visible = true;
+      item.focused = false;
+      ret.push(item);
+    });
+
+    this.selected = [...this.selected, ...ret];
+
+    // ordinal 초기화
+    // for (let i = 0; i < this.selected.length; i++) {
+    //   this.selected[i].ordinal = i;
+    // }
+    this.arrangeOrdinal(this.selected);
+
+    // available 청소
+    this.available = [];
+
+    // 초기화
+    this.focuses = [];
+  }
+
+  // available로 옮김 (<-)
+  toAvailable(): void {
+    const ret = [];
+
+    // available -> selected
+    this.focuses.forEach(focusId => {
+      const item = this.selected.filter(({ id }) => id === focusId)[0];
+      item.visible = false;
+      item.focused = false;
+      ret.push(item);
+    });
+
+    this.available = [...this.available, ...ret];
+
+    // ordinal 초기화
+    // for (let i = 0; i < this.available.length; i++) {
+    //   this.available[i].ordinal = i;
+    // }
+    this.arrangeOrdinal(this.available);
+
+    // selected 청소
+    this.selected = this.selected.filter(
+      ({ id }) => !this.focuses.includes(id)
+    );
+
+    // for (let i = 0; i < this.selected.length; i++) {
+    //   this.selected[i].ordinal = i;
+    // }
+    this.arrangeOrdinal(this.selected);
+
+    // 초기화
+    this.focuses = [];
+  }
+
+  // available로 옮김 (<-)
+  toAvailableAll(): void {
+    const ret = [];
+
+    // selected -> available
+    this.selected.forEach(item => {
+      item.visible = true;
+      item.focused = false;
+      ret.push(item);
+    });
+
+    this.available = [...this.available, ...ret];
+
+    // ordinal 초기화
+    this.arrangeOrdinal(this.available);
+
+    // selected 청소
+    this.selected = [];
+
+    // 초기화
+    this.focuses = [];
   }
 
   // 임의의 item을 클릭하면, this.focused에 넣어주는 함수.
-  onSelect($event: MouseEvent, item: Item): void {
-    console.dir($event);
-    // const { target } = $event;
+  onSelect(position: string, item: Item): void {
     const { id } = item;
-    this.focused.add(id);
-  }
-
-  // visible 속성 값에 따라, ordinal 값을 정해주는 함수.
-  initDataOrdinal(): void {
-    let visibleIdx = 0;
-    let unvisibleIdx = 0;
-    const length = sample1.length;
-
-    for (let i = 0; i < length; i++) {
-      const item = sample1[i];
-      let idx;
-
-      if (item.visible) {
-        idx = visibleIdx;
-        visibleIdx++;
-      } else {
-        idx = unvisibleIdx;
-        unvisibleIdx++;
-      }
-
-      item.ordinal = idx;
+    if (this.focuses.includes(id)) {
+      this.focuses = this.focuses.filter(focusId => focusId !== id);
+    } else {
+      this.focuses.push(id);
     }
-    console.log(this.data);
+
+    switch (position) {
+      case 'available':
+        this.available.map(availableItem =>
+          availableItem.id === id
+            ? (availableItem.focused = true)
+            : availableItem
+        );
+        break;
+
+      case 'selected':
+        this.selected.map(selectedItem =>
+          selectedItem.id === id ? (selectedItem.focused = true) : selectedItem
+        );
+        break;
+    }
   }
 
   ngOnInit(): void {
-    this.data = [...sample1];
-    this.initDataOrdinal();
+    this.available = [];
+    this.selected = [];
+
+    this.data.forEach((item: Item) => {
+      item.focused = false;
+      this.available.push(item);
+    });
   }
 }

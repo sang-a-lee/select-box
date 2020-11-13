@@ -3,25 +3,29 @@
     <h1>Available options</h1>
 
     <div class="items">
-      <div *ngFor="let item of data">
-        <button *ngIf="!item.visible" (click)="onSelect($event, item)">
+      <ul *ngFor="let item of available">
+        <li
+          [class.active]="item.focused"
+          (click)="onSelect('available', item)"
+          class="list-group-item"
+        >
           {{ item.name }}
-        </button>
-      </div>
+        </li>
+      </ul>
     </div>
   </div>
 
   <div class="action">
-    <button (click)="execute('add-all')">
+    <button (click)="toSelectedAll()">
       <strong>add all</strong>
     </button>
-    <button (click)="execute('add')">
+    <button (click)="toSelected()" class="btn btn-dark">
       add
     </button>
-    <button (click)="execute('remove-all')">
+    <button (click)="toAvailableAll()">
       <strong>remove all</strong>
     </button>
-    <button (click)="execute('remove')">
+    <button (click)="toAvailable()" class="btn btn-dark">
       remove
     </button>
   </div>
@@ -29,11 +33,15 @@
   <div class="options">
     <h1>Selected options</h1>
     <div class="items">
-      <div *ngFor="let item of data">
-        <button *ngIf="item.visible" (click)="onSelect($event, item)">
+      <ul *ngFor="let item of selected">
+        <li
+          (click)="onSelect('selected', item)"
+          [class.active]="item.focused"
+          class="list-group-item"
+        >
           {{ item.name }}
-        </button>
-      </div>
+        </li>
+      </ul>
     </div>
   </div>
 </div>
