@@ -1,13 +1,12 @@
 <div class="container">
   <div class="options">
     <h1>Available options</h1>
-
     <div class="items">
-      <ul *ngFor="let item of available">
+      <ul *ngFor="let item of available" class="list-group">
         <li
+          class="list-group-item"
           [class.active]="item.focused"
           (click)="onSelect('available', item)"
-          class="list-group-item"
         >
           {{ item.name }}
         </li>
@@ -15,25 +14,34 @@
     </div>
   </div>
 
+  <!-- <ul *ngFor="let item of available" class="list-group">
+    <li class="list-group-item">{{ item.name }}</li>
+    <li class="list-group-item">Dapibus ac facilisis in</li>
+    <li class="list-group-item">Morbi leo risus</li>
+    <li class="list-group-item">Porta ac consectetur ac</li>
+    <li class="list-group-item">Vestibulum at eros</li>
+  </ul> -->
+
   <div class="action">
-    <button (click)="toSelectedAll()">
+    <button (click)="toSelectedAll()" class="btn btn-default">
       <strong>add all</strong>
     </button>
-    <button (click)="toSelected()" class="btn btn-dark">
+    <button (click)="toSelected()" class="btn btn-default">
       add
     </button>
-    <button (click)="toAvailableAll()">
+    <button (click)="toAvailableAll()" class="btn btn-default">
       <strong>remove all</strong>
     </button>
-    <button (click)="toAvailable()" class="btn btn-dark">
+    <button (click)="toAvailable()" class="btn btn-default">
       remove
     </button>
   </div>
 
   <div class="options">
     <h1>Selected options</h1>
+
     <div class="items">
-      <ul *ngFor="let item of selected">
+      <ul *ngFor="let item of selected" class="list-group">
         <li
           (click)="onSelect('selected', item)"
           [class.active]="item.focused"
@@ -43,5 +51,9 @@
         </li>
       </ul>
     </div>
+  </div>
+  <div class="move">
+    <button class="btn btn-default" (click)="toUp()">⬆️</button>
+    <button class="btn btn-default" (click)="toDown()">⬇️</button>
   </div>
 </div>

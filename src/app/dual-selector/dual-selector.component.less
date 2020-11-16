@@ -5,20 +5,33 @@
 .container {
   display: flex;
   justify-content: center;
+  position: relative;
+  h1 {
+    font-size: 2rem;
+  }
 
   .options {
+    width: 100%;
+
     .items {
       display: flex;
       flex-direction: column;
-      height: 80vh;
+      height: 40vh;
       overflow-y: scroll;
 
-      li {
-        margin-top: 0.1rem;
-        cursor: pointer;
+      ul {
+        display: flex;
+        justify-content: center;
+        align-items: center;
 
-        &:hover {
-          box-shadow: 0px 0px 10px gray;
+        li {
+          cursor: pointer;
+          width: 90%;
+          text-align: center;
+
+          &:hover {
+            box-shadow: 0px 0px 10px gray;
+          }
         }
       }
     }
