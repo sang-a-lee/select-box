@@ -1,11 +1,16 @@
 <div class="container">
-  <div class="options">
-    <h1>Available options</h1>
-    <div class="items">
-      <ul class="list-group">
+  <h1 class="container__title">
+    Dual-Selector
+  </h1>
+  <div class="container__inner">
+    <div class="container__available">
+      <ul class="container__list available__list list-group">
+        <span class="list__empty-text" *ngIf="available.length === 0"
+          >아이템이 없습니다</span
+        >
         <li
           *ngFor="let item of available"
-          class="list-group-item"
+          class="list__item list-group-item"
           [class.active]="item.focused"
           (click)="onSelect('available', item)"
         >
@@ -13,44 +18,75 @@
         </li>
       </ul>
     </div>
-  </div>
 
-  <div class="action">
-    <button (click)="toSelectedAll()" class="btn btn-default">
-      <strong>add all</strong>
-    </button>
-    <button (click)="toSelected()" class="btn btn-default">
-      add
-    </button>
-    <button (click)="toAvailableAll()" class="btn btn-default">
-      <strong>remove all</strong>
-    </button>
-    <button (click)="toAvailable()" class="btn btn-default">
-      remove
-    </button>
-    <button (click)="reset()" class="btn btn-default">
-      초기화
-    </button>
-  </div>
-
-  <div class="options">
-    <h1>Selected options</h1>
-
-    <div class="items">
-      <ul class="list-group">
+    <div class="container__action btn-group-vertical" role="group">
+      <button
+        [disabled]="!actionStateActive.toSelectedAll"
+        (click)="toSelectedAll()"
+        class="btn btn-default btn-xs"
+      >
+        <strong>add all</strong>
+      </button>
+      <button
+        [disabled]="!actionStateActive.toSelected"
+        (click)="toSelected()"
+        class="btn btn-default btn-xs"
+      >
+        add
+      </button>
+      <button
+        [disabled]="!actionStateActive.toAvailableAll"
+        (click)="toAvailableAll()"
+        class="btn btn-default btn-xs"
+      >
+        <strong>remove all</strong>
+      </button>
+      <button
+        [disabled]="!actionStateActive.toAvailable"
+        (click)="toAvailable()"
+        class="btn btn-default btn-xs"
+      >
+        remove
+      </button>
+      <button
+        [disabled]="!actionStateActive.reset"
+        type="button"
+        (click)="resetItems()"
+        class="btn btn-default btn-xs"
+      >
+        초기화
+      </button>
+    </div>
+    <div class="container__selected">
+      <ul class="container__list selected__list list-group">
+        <span class="list__empty-text" *ngIf="selected.length === 0"
+          >아이템이 없습니다</span
+        >
         <li
           *ngFor="let item of selected"
           (click)="onSelect('selected', item)"
           [class.active]="item.focused"
-          class="list-group-item"
+          class="list__item list-group-item"
         >
           {{ item.name }}
         </li>
       </ul>
+      <div class="selected__move">
+        <button
+          [disabled]="!actionStateActive.up"
+          class="btn btn-default"
+          (click)="toUp()"
+        >
+          ⬆️
+        </button>
+        <button
+          [disabled]="!actionStateActive.down"
+          class="btn btn-default"
+          (click)="toDown()"
+        >
+          ⬇️
+        </button>
+      </div>
     </div>
-  </div>
-  <div class="move">
-    <button class="btn btn-default" (click)="toUp()">⬆️</button>
-    <button class="btn btn-default" (click)="toDown()">⬇️</button>
   </div>
 </div>

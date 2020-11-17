@@ -1,16 +1,25 @@
+<!-- <app-dual-selector
+  (actionChange)="onActionChanged($event)"
+  (reset)="onReset($event)"
+  [data]="menuItems"
+></app-dual-selector> -->
+
 <app-dual-selector
-  (clickEventAction)="listenerAction($event)"
-  (clickEventReset)="listenerReset($event)"
+  (actionChange)="onActionChanged($event)"
+  (reset)="onReset($event)"
   [data]="menuItems"
 ></app-dual-selector>
+<!-- 
+  !!!
+  가공이 된 것을 넘겨주다 보니,
+  동적으로 데이터를 넘기지를 못하겠다
+-->
 
-<div class="contents">
-  <div>
+<div class="container">
+  <div class="container__available">
     <pre>{{ available | json }}</pre>
   </div>
-  <div>
+  <div class="container__selected">
     <pre>{{ selected | json }}</pre>
   </div>
 </div>
-
-<!-- <router-outlet></router-outlet> -->

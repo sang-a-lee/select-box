@@ -1,29 +1,7 @@
-import { Component, SimpleChange } from '@angular/core';
-import { menus } from '../resource/data';
+import { Component } from '@angular/core';
+import { menus, users } from '../resource/data';
 
-interface Event {
-  command: string;
-  available: [];
-  selected: [];
-}
-
-export class MenuItem {
-  id: number;
-  name: string;
-  ordinal = 0;
-  visible: boolean;
-  focused = false;
-
-  constructor(json) {
-    this.id = json.id;
-    this.name = json.name;
-    this.visible = json.visible;
-  }
-
-  static parse(json: any): MenuItem {
-    return new MenuItem(json);
-  }
-}
+import { MenuItem } from './dual-selector/dual-selector.component';
 
 @Component({
   selector: 'app-root',
@@ -31,36 +9,73 @@ export class MenuItem {
   styleUrls: ['./app.component.less'],
 })
 export class AppComponent {
+  original: MenuItem[];
   title = 'issue877';
   menuItems = [];
-  available: [];
-  selected: [];
+  available: MenuItem[] = [];
+  selected: MenuItem[] = [];
+  mapPair: any = {
+    id: 'id',
+  };
 
-  listenerAction($event: Event): void {
-    const { available, selected } = $event;
-
-    this.available = available;
-    this.selected = selected;
+  ngOnInit(): void {
+    this.initData();
   }
 
-  listenerReset($event): void {
-    console.log('초기화 버튼 눌림');
-    this.menuItems = [];
-    console.log(this.menuItems);
+  onActionChanged(menuItems: {
+    selected: number[];
+    available: number[];
+  }): void {
+    const { selected, available } = menuItems;
+    this.selected = [];
+    this.available = [];
+
+    selected.forEach(selectedId => {
+      const { id } = this.mapPair;
+      const idx = this.original.findIndex(item => item[id] === selectedId);
+      const item = { ...this.original[idx] };
+      delete item.ordinal;
+      this.selected.push(item);
+    });
+
+    available.forEach(availableId => {
+      const { id } = this.mapPair;
+      const idx = this.original.findIndex(item => item[id] === availableId);
+      const item = { ...this.original[idx] };
+      delete item.ordinal;
+      this.available.push(item);
+    });
+  }
+
+  onReset(event) {
+    this.initData();
   }
 
   initData(): void {
     this.menuItems = [];
+    /* menus */
+    this.original = [...menus];
     menus.forEach(json => {
       const item = MenuItem.parse(json);
+      //
       this.menuItems.push(item);
     });
-    this.available = [];
-    this.selected = [];
-  }
 
-  ngOnInit(): void {
-    this.initData();
-    console.log(this.menuItems);
+    /* users */
+    // this.original = [...users];
+    // this.mapPair = {
+    //   id: 'guid',
+    //   name: 'roleName',
+    // };
+    // this.original.forEach(json => {
+    //   const { id, name } = this.mapPair;
+    //   const item = MenuItem.parse({
+    //     id: json[id],
+    //     ordinal: 0,
+    //     visible: false,
+    //     name: json[name],
+    //   });
+    //   this.menuItems.push(item);
+    // });
   }
 }

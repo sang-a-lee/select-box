@@ -3,45 +3,68 @@
 }
 
 .container {
-  display: flex;
-  justify-content: center;
-  position: relative;
-  h1 {
+  .container__title {
+    text-align: center;
     font-size: 2rem;
   }
 
-  .options {
-    width: 100%;
+  .container__inner {
+    display: flex;
+    justify-content: center;
 
-    .items {
-      display: flex;
-      flex-direction: column;
-      height: 40vh;
+    // available, selected 공통
+    .container__available,
+    .container__selected {
+      flex: 4;
+    }
+
+    .container__list {
+      height: 55vh;
       overflow-y: scroll;
+      border-radius: 5px;
+      border: solid 0.01rem rgba(gray, 0.5);
 
-      ul {
-        margin: 0 0.5rem;
-        li {
-          cursor: pointer;
-          text-align: center;
+      .list__empty-text {
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2rem;
+        color: gray;
+      }
 
-          &:hover {
-            background-color: rgba(gray, 0.3);
-          }
-        }
+      .list__item {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 3.5rem;
+        font-size: 1.3rem;
+        cursor: pointer;
       }
     }
-  }
 
-  .action {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    // action
+    .container__action {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0 0.5rem;
+    }
 
-    button {
-      width: 100%;
-      margin: 0.5rem 0;
+    // selected
+    .container__selected {
+      display: flex;
+
+      .selected__list {
+        display: block;
+        flex: 10;
+      }
+      .selected__move {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
     }
   }
 }
