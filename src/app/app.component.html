@@ -1,11 +1,7 @@
-<!-- <app-dual-selector
-  (clickEvent)="listener($event)"
-  [data]="data1"
-></app-dual-selector> -->
-
 <app-dual-selector
-  (clickEvent)="listener($event)"
-  [data]="data2"
+  (clickEventAction)="listenerAction($event)"
+  (clickEventReset)="listenerReset($event)"
+  [data]="menuItems"
 ></app-dual-selector>
 
 <div class="contents">

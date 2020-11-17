@@ -1,27 +1,41 @@
-/* TODO
- * 데이터 바인딩 사용해서 외부에서 sample data를 가공해서 넣기 (✔️)
- * 두가지 이상의 데이터를 dual-selector에서 작동시킬수 있게 하기 (✔️)
- * addAll, add, remove, removeAll 에 대해서 이벤트 발생 시키기 (상위 컴포넌트) (✔️)
- * 이벤트가 발생할 때 인자로 selected된 데이터를 같이 넘겨야 함 (✔️)
- * 상위 컴포넌트에서는 dual-selector 에서 전달한 데이터를 json pipe를 사용해서 표시하기 (✔️)
- * scss -> less (✔️)
- * 아이템 순서 이동 (✔️)
+/**
+ * 1. 검색 및 선택
+ * 2. 초기화 (add, remove .. 버튼 아래에)
+ * 3. 아이템 순서 이동 (✔️)
+ * 4. interface -> class
+ * 5. selected 된 상태는 available이나 selected나 한쪽만 유지 (✔️)
+ * 6. 컴포넌트 외부에서 데이터를 주입하기 전에, 컴포넌트에 맞는 타입으로 변형시켜서 넣는다고 생각
+ * 그리고 선택이 안되었을 때는 동작하는 버튼들을 모두 disabled 처리
+ * 7. 원본이 변경되지 않도록
  */
 
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  Input,
+  Output,
+  EventEmitter,
+  SimpleChange,
+} from '@angular/core';
 
 interface Item {
   id: number;
-  topId: number;
-  code: string;
   name: string;
-  nameEn: string;
-  nameKo: string;
-  route: string;
   ordinal: number;
   visible: boolean;
   focused: boolean;
 }
+
+enum MenuState {
+  available,
+  selected,
+  none,
+}
+
+const reducer = (acc, curr) => {
+  acc.push(curr.id);
+  return acc;
+};
 
 @Component({
   selector: 'app-dual-selector',
@@ -30,232 +44,35 @@ interface Item {
 })
 export class DualSelectorComponent implements OnInit {
   @Input() data: Item[];
-  @Output() clickEvent = new EventEmitter();
+  @Output() clickEventAction = new EventEmitter();
+  @Output() clickEventReset = new EventEmitter();
 
   available: Item[] = [];
   selected: Item[] = [];
-  focuses = []; // 중복 시, 아이템 삭제
+  focused: number[] = [];
+  menuState = MenuState.none;
 
   constructor() {}
 
-  /**
-   * 인자로 받은 list(available || selected) 의 ordinal을 재정렬 하는 함수
-   * @param {Item[]} list ordinal을 재정렬할 배열
-   */
-  arrangeOrdinal(list: Item[]): void {
+  setMenuState(state: MenuState): void {
+    this.menuState = state;
+  }
+  _clearMenuState(): void {
+    this.menuState = MenuState.none;
+  }
+
+  _toggleFocus(list: Item[], id: number): void {
+    list.map(item => (item.id === id ? (item.focused = !item.focused) : item));
+  }
+
+  _initOrdinal(list: Item[]): void {
     for (let i = 0; i < list.length; i++) {
       list[i].ordinal = i;
     }
   }
 
-  /**
-   * selected 로 선택된 것들을 옮기는 함수.
-   */
-  toSelected(): void {
-    const ret = [];
-
-    // available -> selected
-    this.focuses.forEach(focusId => {
-      const item = this.available.filter(({ id }) => id === focusId)[0];
-      item.visible = true;
-      item.focused = false;
-      ret.push(item);
-    });
-
-    this.selected = [...this.selected, ...ret];
-    this.arrangeOrdinal(this.selected);
-
-    // focuses에 남아있는 available 삭제
-    this.available = this.available.filter(
-      ({ id }) => !this.focuses.includes(id)
-    );
-
-    // ordinal 재정렬
-    this.arrangeOrdinal(this.available);
-
-    // 초기화
-    this.focuses = [];
-
-    // event 전달
-    this.clickEvent.emit({
-      command: 'to-selected',
-      available: this.available,
-      selected: this.selected,
-    });
-  }
-
-  /**
-   * selected 로 모두 옮기는 함수.
-   */
-  toSelectedAll(): void {
-    const ret = [];
-
-    // available -> selected
-    this.available.forEach(item => {
-      item.visible = true;
-      item.focused = false;
-      ret.push(item);
-    });
-
-    // ordinal 재정렬
-    this.selected = [...this.selected, ...ret];
-    this.arrangeOrdinal(this.selected);
-
-    // 초기화
-    this.available = [];
-    this.focuses = [];
-
-    // event 전달
-    this.clickEvent.emit({
-      command: 'to-selected-all',
-      available: this.available,
-      selected: this.selected,
-    });
-  }
-
-  /**
-   * available 로 선택된 것들을 옮기는 함수.
-   */
-  toAvailable(): void {
-    const ret = [];
-
-    // selected -> available
-    this.focuses.forEach(focusId => {
-      const item = this.selected.filter(({ id }) => id === focusId)[0];
-      item.visible = false;
-      item.focused = false;
-      ret.push(item);
-    });
-
-    this.available = [...this.available, ...ret];
-    this.arrangeOrdinal(this.available);
-
-    // focuses에 남아있는 selected 삭제
-    this.selected = this.selected.filter(
-      ({ id }) => !this.focuses.includes(id)
-    );
-
-    // ordinal 재정렬
-    this.arrangeOrdinal(this.selected);
-
-    // 초기화
-    this.focuses = [];
-
-    // event 전달
-    this.clickEvent.emit({
-      command: 'to-available',
-      available: this.available,
-      selected: this.selected,
-    });
-  }
-
-  /**
-   * available 로 모두 옮기는 함수.
-   */ toAvailableAll(): void {
-    const ret = [];
-
-    // selected -> available
-    this.selected.forEach(item => {
-      item.visible = true;
-      item.focused = false;
-      ret.push(item);
-    });
-
-    // ordinal 재정렬
-    this.available = [...this.available, ...ret];
-    this.arrangeOrdinal(this.available);
-
-    // 초기화
-    this.selected = [];
-    this.focuses = [];
-
-    // event 전달
-    this.clickEvent.emit({
-      command: 'to-available-all',
-      available: this.available,
-      selected: this.selected,
-    });
-  }
-
-  /**
-   * 임의의 item을 클릭하면 this.focused에 넣어주고, focused 속성을 바꿔주는 함수.
-   * (focused -> T 이면 리스트 아이템의 색이 파란색으로,
-   * focused -> F 이면 리스트 아이템의 색이 흰색이 된다)
-   * @param {string} position 현재 선택된 아이템이 available인지, selected인지.
-   * @param {Item} item 클릭한 item
-   */
-  onSelect(position: string, item: Item): void {
-    const { id } = item;
-    if (this.focuses.includes(id)) {
-      this.focuses = this.focuses.filter(focusId => focusId !== id);
-    } else {
-      this.focuses.push(id);
-    }
-
-    switch (position) {
-      case 'available':
-        this.available.map(availableItem =>
-          availableItem.id === id
-            ? (availableItem.focused = !availableItem.focused)
-            : availableItem
-        );
-        break;
-
-      case 'selected':
-        this.selected.map(selectedItem =>
-          selectedItem.id === id
-            ? (selectedItem.focused = !selectedItem.focused)
-            : selectedItem
-        );
-        break;
-    }
-  }
-
-  toUp(): void {
-    const currItemId = this.focuses[0];
-
-    if (!currItemId) {
-      return;
-    }
-
-    const { length } = this.selected;
-
-    for (let i = 0; i < length; i++) {
-      const item = this.selected[i];
-      if (item.id === currItemId) {
-        if (i === 0) {
-          return;
-        }
-        this._swap(this.selected, i, i - 1);
-        break;
-      }
-    }
-
-    this.focuses = [];
-    this.selected.map(selectedItem => (selectedItem.focused = false));
-  }
-
-  toDown(): void {
-    const currItemId = this.focuses[0];
-    if (!currItemId) {
-      return;
-    }
-
-    const { length } = this.selected;
-
-    for (let i = 0; i < length; i++) {
-      const item = this.selected[i];
-      if (item.id === currItemId) {
-        if (i === length - 1) {
-          return;
-        }
-        this._swap(this.selected, i, i + 1);
-        break;
-      }
-    }
-
-    this.focuses = [];
-    this.selected.map(selectedItem => (selectedItem.focused = false));
+  _clearFocused(list: Item[]): void {
+    list.map(item => (item.focused = false));
   }
 
   _swap(list: Item[], idx1: number, idx2: number): void {
@@ -264,39 +81,189 @@ export class DualSelectorComponent implements OnInit {
     list[idx2].ordinal = idx2;
   }
 
+  _sendClickEvent() {
+    this.clickEventAction.emit({
+      selected: this.selected.reduce(reducer, []),
+      available: this.available.reduce(reducer, []),
+    });
+  }
+
+  onSelect(state: string, item: Item): void {
+    if (
+      this.menuState !== MenuState.none &&
+      MenuState[state] !== this.menuState
+    ) {
+      // 선택 불가능
+      return;
+    }
+
+    const { id } = item;
+    switch (state) {
+      case 'available':
+        this._toggleFocus(this.available, id);
+        if (!this.focused.includes(id)) {
+          this.focused.push(id);
+        } else {
+          this.focused = this.focused.filter(focusId => focusId !== id);
+        }
+        // this.available.map(item =>
+        //   item.id === id ? (item.focused = !item.focused) : item
+        // );
+        break;
+
+      case 'selected':
+        this._toggleFocus(this.selected, id);
+        if (!this.focused.includes(id)) {
+          this.focused.push(id);
+        } else {
+          this.focused = this.focused.filter(focusId => focusId !== id);
+        }
+        // this.selected.map(item =>
+        //   item.id === id ? (item.focused = !item.focused) : item
+        // );
+        break;
+    }
+
+    this.setMenuState(MenuState[state]);
+    if (this.focused.length === 0) {
+      this.setMenuState(MenuState.none);
+    }
+  }
+
+  /* available -> selected (오른쪽으로) */
+  toSelectedAll(): void {
+    // 모든 아이템을 selected로 옮깁니다
+    this.selected = [...this.selected, ...this.available];
+    this.available = [];
+    //
+    this._initOrdinal(this.available);
+    this._initOrdinal(this.selected);
+    this._clearMenuState();
+    this.focused = [];
+
+    this._sendClickEvent();
+  }
+
+  toSelected(): void {
+    // 선택된 아이템을 selected로 옮깁니다
+
+    const focusedItems = this.available.filter(item => item.focused === true);
+    const focusedIds = focusedItems.reduce(reducer, []);
+    this._clearFocused(focusedItems);
+    this.selected = [...this.selected, ...focusedItems];
+
+    this.available = this.available.filter(
+      ({ id }) => !focusedIds.includes(id)
+    );
+
+    this._initOrdinal(this.available);
+    this._initOrdinal(this.selected);
+    this._clearMenuState();
+    this.focused = [];
+
+    this._sendClickEvent();
+  }
+
+  /* selected -> available (왼쪽으로) */
+  // 모든 아이템을 available로 옮깁니다
+  toAvailableAll(): void {
+    this.available = [...this.available, ...this.selected];
+    this.selected = [];
+    //
+    this._initOrdinal(this.available);
+    this._initOrdinal(this.selected);
+    this._clearMenuState();
+    this.focused = [];
+
+    this._sendClickEvent();
+  }
+
+  // 선택된 아이템을 available로 옮깁니다
+  toAvailable(): void {
+    const focusedItems = this.selected.filter(item => item.focused === true);
+    const focusedIds = focusedItems.reduce(reducer, []);
+    this._clearFocused(focusedItems);
+    this.available = [...this.available, ...focusedItems];
+
+    this.selected = this.selected.filter(({ id }) => !focusedIds.includes(id));
+    //
+    this._initOrdinal(this.available);
+    this._initOrdinal(this.selected);
+    this._clearMenuState();
+    this.focused = [];
+
+    this._sendClickEvent();
+  }
+
+  /* 초기화 */
+  reset(): void {
+    console.log('모든 아이템들의 위치를 초기화 합니다');
+
+    //
+    this._clearMenuState();
+  }
+
+  /* 메뉴 아이템 이동 (selected만) */
+  toUp(): void {
+    const targetIdx = this.selected.findIndex(item => item.focused === true);
+
+    this._clearFocused(this.selected);
+    this._clearMenuState();
+
+    if (targetIdx > 0) {
+      this._swap(this.selected, targetIdx, targetIdx - 1);
+    }
+  }
+
+  toDown(): void {
+    const targetIdx = this.selected.findIndex(item => item.focused === true);
+
+    this._clearFocused(this.selected);
+    this._clearMenuState();
+
+    if (targetIdx < this.selected.length - 1) {
+      this._swap(this.selected, targetIdx, targetIdx + 1);
+    }
+  }
+
   /**
-   * 형태가 다른 데이터가 들어올 경우, 형식을 맞춰주는 함수.
+   * visible, invisible 여부에 따라 ordinal을 초기화해주는 함수
    * @param {Item[]} data 기존의 데이터
-   * @param {any} names 매핑할 키의 쌍들
    * @returns {Item[]} 바뀐 형식의 데이터
    */
-  _mapData(data: Item[], names: any): Item[] {
-    const ret = [];
+  _mapData(data: Item[]): [Item[], Item[]] {
     const { length } = data;
+    const available = { ordinal: 0, items: [] };
+    const selected = { ordinal: 0, items: [] };
 
     for (let i = 0; i < length; i++) {
       const item = data[i];
-      item.focused = false;
-      item.id = i;
-      item.ordinal = i;
-      item.name = item[names.name];
-      ret.push(item);
+
+      if (!item.visible) {
+        // available
+        item.ordinal = available.ordinal++;
+        available.items.push(item);
+      } else {
+        // selected
+        item.ordinal = selected.ordinal++;
+        selected.items.push(item);
+      }
     }
 
-    return ret;
+    return [available.items, selected.items];
   }
 
   ngOnInit(): void {
-    // this.available = [
-    //   ...this._mapData(this.data, {
-    //     name: 'name',
-    //   }),
-    // ];
+    [this.available, this.selected] = this._mapData(this.data);
+  }
 
-    this.available = [
-      ...this._mapData(this.data, {
-        name: 'roleName',
-      }),
-    ];
+  ngOnChanges(changes: SimpleChange) {
+    // 변화를 감지하는 메소드
+    // ➡️ 따라서 이벤트 발생 시 항상 같은 값을 준다면 (값에 변화가 없다면), 아래의 코드가 실행되지 않음
+    console.log('changes');
+    // for (const propName in changes) {
+    //   console.log('>', changes[propName].currentValue);
+    //   // 이 값은 this.inputData와 같은 값이다
+    // }
   }
 }

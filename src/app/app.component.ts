@@ -1,11 +1,30 @@
-import { Component } from '@angular/core';
-import { sample1, sample2 } from '../resource/data';
+import { Component, SimpleChange } from '@angular/core';
+import { menus } from '../resource/data';
 
 interface Event {
   command: string;
   available: [];
   selected: [];
 }
+
+export class MenuItem {
+  id: number;
+  name: string;
+  ordinal = 0;
+  visible: boolean;
+  focused = false;
+
+  constructor(json) {
+    this.id = json.id;
+    this.name = json.name;
+    this.visible = json.visible;
+  }
+
+  static parse(json: any): MenuItem {
+    return new MenuItem(json);
+  }
+}
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -13,14 +32,35 @@ interface Event {
 })
 export class AppComponent {
   title = 'issue877';
-  data1 = sample1;
-  data2 = sample2;
+  menuItems = [];
   available: [];
   selected: [];
 
-  listener($event: Event): void {
-    const { command, available, selected } = $event;
+  listenerAction($event: Event): void {
+    const { available, selected } = $event;
+
     this.available = available;
     this.selected = selected;
+  }
+
+  listenerReset($event): void {
+    console.log('초기화 버튼 눌림');
+    this.menuItems = [];
+    console.log(this.menuItems);
+  }
+
+  initData(): void {
+    this.menuItems = [];
+    menus.forEach(json => {
+      const item = MenuItem.parse(json);
+      this.menuItems.push(item);
+    });
+    this.available = [];
+    this.selected = [];
+  }
+
+  ngOnInit(): void {
+    this.initData();
+    console.log(this.menuItems);
   }
 }

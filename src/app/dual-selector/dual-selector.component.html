@@ -2,8 +2,9 @@
   <div class="options">
     <h1>Available options</h1>
     <div class="items">
-      <ul *ngFor="let item of available" class="list-group">
+      <ul class="list-group">
         <li
+          *ngFor="let item of available"
           class="list-group-item"
           [class.active]="item.focused"
           (click)="onSelect('available', item)"
@@ -13,14 +14,6 @@
       </ul>
     </div>
   </div>
-
-  <!-- <ul *ngFor="let item of available" class="list-group">
-    <li class="list-group-item">{{ item.name }}</li>
-    <li class="list-group-item">Dapibus ac facilisis in</li>
-    <li class="list-group-item">Morbi leo risus</li>
-    <li class="list-group-item">Porta ac consectetur ac</li>
-    <li class="list-group-item">Vestibulum at eros</li>
-  </ul> -->
 
   <div class="action">
     <button (click)="toSelectedAll()" class="btn btn-default">
@@ -35,14 +28,18 @@
     <button (click)="toAvailable()" class="btn btn-default">
       remove
     </button>
+    <button (click)="reset()" class="btn btn-default">
+      초기화
+    </button>
   </div>
 
   <div class="options">
     <h1>Selected options</h1>
 
     <div class="items">
-      <ul *ngFor="let item of selected" class="list-group">
+      <ul class="list-group">
         <li
+          *ngFor="let item of selected"
           (click)="onSelect('selected', item)"
           [class.active]="item.focused"
           class="list-group-item"
