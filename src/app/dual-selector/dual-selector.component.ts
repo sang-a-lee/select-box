@@ -1,11 +1,17 @@
 /**
  * TODO
- * 1. (✓) 검색 및 선택
- * 2. (✓) 키워드를 입력한 상태에서 데이터가 없으면 '검색 결과가 없습니다' 출력
- * 3. (✓) available, selected 맨 위에 검색할 수 있도록 input 만들고, 실시간 입력, 필터링 결과
- * 4. (✓) 이전과 영역이 다른 아이템을 클릭하면, 이전에 선택되었던 아이템들은 모두 선택이 취소됨
- * 5. (✓) 아이템 이동은 드래그로
- * 6. (✓) 검색 시 debounce 적용
+ * > 스타일 (notion 참고)
+ * ( ) fontawesome 4.7
+ * ( ) item -> 왼쪽 정렬 / 영역 너비 반정도 줄이기 / 아이템들 패딩 
+ * ( ) 아이템 이름이 많이 길 때 -> ... 붙이기, title attribute (HTML) - tooltip으로 잘려진 부분 볼 수 있도록
+ * ( ) input -> bootstrap input sm 적용
+ * ( ) 가운데 버튼들 -> vertical align 가운데 / 가로폭 줄이기
+ * ( ) 영역 높이 -> 입력으로
+ * 
+ * > 기능
+ * ( ) shift 키 multi select (시작~끝) => flag 지정, (keyup.enter)="onEnterKeyUp($event)"
+ * ( ) ESC 키 -> 전체 선택 해제
+ * ( ) 드래그/드롭 직접 구현 - HTML5의 drag&drop
  */
 
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
