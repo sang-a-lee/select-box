@@ -5,7 +5,8 @@
   <div class="container__inner">
     <div class="container__available">
       <input class="container__search" type="text" placeholder="검색" (input)="onSearchAvailableChange($event.target.value)">
-      <ul class="container__list available__list list-group">
+      <ul 
+        class="container__list available__list list-group">
         <span class="list__empty-text" 
               *ngIf="available.length === 0 || getAvailable().length === 0"
           >
@@ -14,6 +15,7 @@
           }} 없습니다
         </span>
         <li
+          cdkDrag
           *ngFor="let item of getAvailable()"
           class="list__item list-group-item"
           [class.active]="item.focused"
@@ -63,7 +65,9 @@
     </div>
     <div class="container__selected">
       <input class="container__search" type="text" placeholder="검색" (input)="onSearchSelectedChange($event.target.value)">
-      <ul class="container__list selected__list list-group">
+      <ul 
+        class="container__list selected__list list-group"
+        >
         <span class="list__empty-text" 
         *ngIf="selected.length === 0 || getSelected().length === 0"
         >
@@ -72,6 +76,7 @@
           }} 없습니다
         </span>
         <li
+          cdkDrag
           *ngFor="let item of getSelected()"
           (click)="onSelect('selected', item)"
           [class.active]="item.focused"
@@ -80,7 +85,7 @@
           {{ item.name }}
         </li>
       </ul>
-      <div class="selected__move">
+      <!-- <div class="selected__move">
         <button
           [disabled]="!actionStateActive.up"
           class="btn btn-default"
@@ -95,7 +100,7 @@
         >
           <fa-icon [icon]="faAngleDown"></fa-icon>
         </button>
-      </div>
+      </div> -->
     </div>
   </div>
 </div>

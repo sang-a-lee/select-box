@@ -4,14 +4,13 @@
  * 2. (✓) 키워드를 입력한 상태에서 데이터가 없으면 '검색 결과가 없습니다' 출력
  * 3. (✓) available, selected 맨 위에 검색할 수 있도록 input 만들고, 실시간 입력, 필터링 결과
  * 4. (✓) 이전과 영역이 다른 아이템을 클릭하면, 이전에 선택되었던 아이템들은 모두 선택이 취소됨
- * 5. ( ) 아이템 이동은 드래그로
+ * 5. (✓) 아이템 이동은 드래그로
+ * 6. (✓) 검색 시 debounce 적용
  */
 
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 
 import { faAngleRight,  faAngleDoubleRight, faAngleLeft, faAngleDoubleLeft,faAngleUp, faAngleDown ,faUndo} from '@fortawesome/free-solid-svg-icons';
-import throttleAndDebounce from "../../utils/debounce"
-const _ = throttleAndDebounce();
 
 export class MenuItem {
   id: number;
@@ -66,6 +65,20 @@ export class DualSelectorComponent implements OnInit {
   faAngleUp = faAngleUp;
   faAngleDown = faAngleDown;
   faUndo = faUndo;
+  timer;
+
+    movies = [
+    'Episode I - The Phantom Menace',
+    'Episode II - Attack of the Clones',
+    'Episode III - Revenge of the Sith',
+    'Episode IV - A New Hope',
+    'Episode V - The Empire Strikes Back',
+    'Episode VI - Return of the Jedi',
+    'Episode VII - The Force Awakens',
+    'Episode VIII - The Last Jedi',
+    'Episode IX – The Rise of Skywalker'
+  ];
+
 
   @Input() data: MenuItem[];
   @Output() actionChange = new EventEmitter();
@@ -96,7 +109,6 @@ export class DualSelectorComponent implements OnInit {
   ngOnInit(): void {
     [this.available, this.selected] = this._mapData(this.data);
     this._emitActionChangeEvent();
-    this.ft();
   }
 
   ngOnChanges({ data: { currentValue } }): void {
@@ -104,34 +116,6 @@ export class DualSelectorComponent implements OnInit {
     this._emitActionChangeEvent();
   }
 
-  getSelected() {
-    const ret = [];
-    this.selected.forEach(item => {
-      if(item.name.includes(this.selectedSearchKeyword))
-        ret.push(item)
-    })
-    return ret;
-  }
-
-  getAvailable() {
-    const ret = [];
-    this.available.forEach(item => {
-      if(item.name.includes(this.availableSearchKeyword))
-        ret.push(item)
-    })
-    return ret;
-  }
-
-  ft() {
-    console.log(this.selected);
-    const ret = [];
-    this.selected.forEach((item)=>
-      {if(item.name.includes('소'))
-        ret.push(item)}
-    )
-    console.log(ret);
-    return ret;
-  }
 
   private _initActionStateActive() {
     this.actionStateActive = {
@@ -185,14 +169,38 @@ export class DualSelectorComponent implements OnInit {
     }
   }
 
+  getSelected() {
+    const ret = [];
+    this.selected.forEach(item => {
+      if(item.name.includes(this.selectedSearchKeyword))
+        ret.push(item)
+    })
+    return ret;
+  }
+
+  getAvailable() {
+    const ret = [];
+    this.available.forEach(item => {
+      if(item.name.includes(this.availableSearchKeyword))
+        ret.push(item)
+    })
+    return ret;
+  }
+
+
+
   onSearchAvailableChange(keyword) {
-    console.log("available 영역 keyword: ",keyword)
-    this.availableSearchKeyword = keyword;
+    clearTimeout(this.timer);
+    this.timer = setTimeout(()=>{
+      this.availableSearchKeyword = keyword;
+    }, 100)
   }
 
   onSearchSelectedChange(keyword) {
-    console.log("selected 영역 keyword: ",keyword)
-    this.selectedSearchKeyword = keyword;
+    clearTimeout(this.timer);
+    this.timer = setTimeout(()=>{
+      this.selectedSearchKeyword = keyword;
+    },100)
   }
 
 
@@ -229,7 +237,6 @@ export class DualSelectorComponent implements OnInit {
     }
 
     this._setMenuState(MenuState[state]);
-    console.log(this.focused);
 
     if (this.focused.length === 0) {
       this._setMenuState(MenuState.none);
@@ -382,9 +389,6 @@ export class DualSelectorComponent implements OnInit {
 
   /* 초기화 */
   resetItems(): void {
-    console.log('모든 아이템들의 위치를 초기화 합니다');
-
-    //
     this.reset.emit('초기화');
   }
 
