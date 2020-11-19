@@ -18,10 +18,21 @@
       flex: 4;
     }
 
+    .container__search {
+      border-radius: 5px 5px 0px 0px;
+      border: solid 0.01rem rgba(gray, 0.5);
+      height: 3rem;
+      padding: 1rem 0.5rem;
+
+      &:focus {
+        outline: none;
+      }
+    }
+
     .container__list {
-      height: 55vh;
+      height: 35vh;
       overflow-y: scroll;
-      border-radius: 5px;
+      border-radius: 0px 0px 5px 5px;
       border: solid 0.01rem rgba(gray, 0.5);
 
       .list__empty-text {

@@ -4,12 +4,17 @@
   </h1>
   <div class="container__inner">
     <div class="container__available">
+      <input class="container__search" type="text" placeholder="검색" (input)="onSearchAvailableChange($event.target.value)">
       <ul class="container__list available__list list-group">
-        <span class="list__empty-text" *ngIf="available.length === 0"
-          >아이템이 없습니다</span
-        >
+        <span class="list__empty-text" 
+              *ngIf="available.length === 0 || getAvailable().length === 0"
+          >
+          {{
+            available.length === 0 ? '아이템이' : '검색 결과가'
+          }} 없습니다
+        </span>
         <li
-          *ngFor="let item of available"
+          *ngFor="let item of getAvailable()"
           class="list__item list-group-item"
           [class.active]="item.focused"
           (click)="onSelect('available', item)"
@@ -18,52 +23,56 @@
         </li>
       </ul>
     </div>
-
     <div class="container__action btn-group-vertical" role="group">
+      <button
+      [disabled]="!actionStateActive.reset"
+      type="button"
+      (click)="resetItems()"
+      class="btn btn-default btn-xs"
+      >
+        <fa-icon [icon]="faUndo"></fa-icon>
+      </button>
       <button
         [disabled]="!actionStateActive.toSelectedAll"
         (click)="toSelectedAll()"
         class="btn btn-default btn-xs"
       >
-        <strong>add all</strong>
-      </button>
-      <button
-        [disabled]="!actionStateActive.toSelected"
-        (click)="toSelected()"
-        class="btn btn-default btn-xs"
-      >
-        add
+        <strong><fa-icon [icon]="faAngleDoubleRight"></fa-icon></strong>
       </button>
       <button
         [disabled]="!actionStateActive.toAvailableAll"
         (click)="toAvailableAll()"
         class="btn btn-default btn-xs"
       >
-        <strong>remove all</strong>
+        <strong><fa-icon [icon]="faAngleDoubleLeft"></fa-icon></strong>
+      </button>
+      <button
+      [disabled]="!actionStateActive.toSelected"
+      (click)="toSelected()"
+      class="btn btn-default btn-xs"
+      >
+        <fa-icon [icon]="faAngleRight"></fa-icon>
       </button>
       <button
         [disabled]="!actionStateActive.toAvailable"
         (click)="toAvailable()"
         class="btn btn-default btn-xs"
       >
-        remove
-      </button>
-      <button
-        [disabled]="!actionStateActive.reset"
-        type="button"
-        (click)="resetItems()"
-        class="btn btn-default btn-xs"
-      >
-        초기화
+      <fa-icon [icon]="faAngleLeft"></fa-icon>
       </button>
     </div>
     <div class="container__selected">
+      <input class="container__search" type="text" placeholder="검색" (input)="onSearchSelectedChange($event.target.value)">
       <ul class="container__list selected__list list-group">
-        <span class="list__empty-text" *ngIf="selected.length === 0"
-          >아이템이 없습니다</span
+        <span class="list__empty-text" 
+        *ngIf="selected.length === 0 || getSelected().length === 0"
         >
+          {{
+            selected.length === 0 ? '아이템이' : '검색 결과가'
+          }} 없습니다
+        </span>
         <li
-          *ngFor="let item of selected"
+          *ngFor="let item of getSelected()"
           (click)="onSelect('selected', item)"
           [class.active]="item.focused"
           class="list__item list-group-item"
@@ -77,14 +86,14 @@
           class="btn btn-default"
           (click)="toUp()"
         >
-          ⬆️
+          <fa-icon [icon]="faAngleUp"></fa-icon>
         </button>
         <button
           [disabled]="!actionStateActive.down"
           class="btn btn-default"
           (click)="toDown()"
         >
-          ⬇️
+          <fa-icon [icon]="faAngleDown"></fa-icon>
         </button>
       </div>
     </div>

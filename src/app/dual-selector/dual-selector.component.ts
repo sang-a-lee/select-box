@@ -1,19 +1,17 @@
 /**
- * 1. ( ) 검색 및 선택
- * 2. ( ) 키워드를 입력한 상태에서 데이터가 없으면 '검색 결과가 없습니다' 출력
- * 3. ( ) available, selected 맨 위에 검색할 수 있도록 input 만들고, 실시간 입력, 필터링 결과
- * 4. (✔️) 초기화 (add, remove .. 버튼 아래에)
- * 5. (✔️) 아이템 순서 이동
- * 6. (✔️) interface -> class
- * 7. (✔️) selected 된 상태는 available이나 selected나 한쪽만 유지
- * 8. (✔️) 컴포넌트 외부에서 데이터를 주입하기 전에, 컴포넌트에 맞는 타입으로 변형시켜서 넣는다고 생각,
- * 그리고 선택이 안되었을 때는 동작하는 버튼들을 모두 disabled 처리
- * 9. (✔️) 원본이 변경되지 않도록
- * 10. (✔️) 데이터가 없으면 '데이터가 없습니다' 출력
- * 11. ( )텍스트 -> 아이콘 (fontawesome)
+ * TODO
+ * 1. (✓) 검색 및 선택
+ * 2. (✓) 키워드를 입력한 상태에서 데이터가 없으면 '검색 결과가 없습니다' 출력
+ * 3. (✓) available, selected 맨 위에 검색할 수 있도록 input 만들고, 실시간 입력, 필터링 결과
+ * 4. (✓) 이전과 영역이 다른 아이템을 클릭하면, 이전에 선택되었던 아이템들은 모두 선택이 취소됨
+ * 5. ( ) 아이템 이동은 드래그로
  */
 
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+
+import { faAngleRight,  faAngleDoubleRight, faAngleLeft, faAngleDoubleLeft,faAngleUp, faAngleDown ,faUndo} from '@fortawesome/free-solid-svg-icons';
+import throttleAndDebounce from "../../utils/debounce"
+const _ = throttleAndDebounce();
 
 export class MenuItem {
   id: number;
@@ -21,6 +19,7 @@ export class MenuItem {
   ordinal = 0;
   visible: boolean;
   focused = false;
+
 
   constructor(json) {
     this.id = json.id;
@@ -60,12 +59,24 @@ const reducer = (acc, curr) => {
   styleUrls: ['./dual-selector.component.less'],
 })
 export class DualSelectorComponent implements OnInit {
+  faAngleRight = faAngleRight;
+  faAngleLeft = faAngleLeft;
+  faAngleDoubleRight = faAngleDoubleRight;
+  faAngleDoubleLeft = faAngleDoubleLeft;
+  faAngleUp = faAngleUp;
+  faAngleDown = faAngleDown;
+  faUndo = faUndo;
+
   @Input() data: MenuItem[];
   @Output() actionChange = new EventEmitter();
   @Output() reset = new EventEmitter();
 
   available: MenuItem[] = [];
+  availableSearchKeyword:string = '';
+  
   selected: MenuItem[] = [];
+  selectedSearchKeyword:string = '';
+
   focused: number[] = [];
   menuState = MenuState.none;
   actionStateActive = {
@@ -80,14 +91,46 @@ export class DualSelectorComponent implements OnInit {
 
   constructor() {}
 
+
+
   ngOnInit(): void {
     [this.available, this.selected] = this._mapData(this.data);
     this._emitActionChangeEvent();
+    this.ft();
   }
 
   ngOnChanges({ data: { currentValue } }): void {
     [this.available, this.selected] = this._mapData(currentValue);
     this._emitActionChangeEvent();
+  }
+
+  getSelected() {
+    const ret = [];
+    this.selected.forEach(item => {
+      if(item.name.includes(this.selectedSearchKeyword))
+        ret.push(item)
+    })
+    return ret;
+  }
+
+  getAvailable() {
+    const ret = [];
+    this.available.forEach(item => {
+      if(item.name.includes(this.availableSearchKeyword))
+        ret.push(item)
+    })
+    return ret;
+  }
+
+  ft() {
+    console.log(this.selected);
+    const ret = [];
+    this.selected.forEach((item)=>
+      {if(item.name.includes('소'))
+        ret.push(item)}
+    )
+    console.log(ret);
+    return ret;
   }
 
   private _initActionStateActive() {
@@ -136,39 +179,62 @@ export class DualSelectorComponent implements OnInit {
     });
   }
 
-  onSelect(state: string, item: MenuItem): void {
-    if (
-      this.menuState !== MenuState.none &&
-      MenuState[state] !== this.menuState
-    ) {
-      // 선택 불가능
-      return;
+  private _focusedInit(list: MenuItem[]):void {
+    for(let i=0; i<list.length; i++) {
+      list[i].focused = false;
     }
+  }
 
+  onSearchAvailableChange(keyword) {
+    console.log("available 영역 keyword: ",keyword)
+    this.availableSearchKeyword = keyword;
+  }
+
+  onSearchSelectedChange(keyword) {
+    console.log("selected 영역 keyword: ",keyword)
+    this.selectedSearchKeyword = keyword;
+  }
+
+
+  onSelect(state: string, item: MenuItem): void {
     const { id } = item;
+
     if (!this.focused.includes(id)) {
       this.focused.push(id);
     } else {
       this.focused = this.focused.filter(focusId => focusId !== id);
     }
 
+
     switch (state) {
       case 'available':
+        if (
+          this.menuState !== MenuState.none &&
+          MenuState[state] !== this.menuState
+        ) {
+          this._focusedInit(this.selected);
+        }
         this._toggleFocus(this.available, id);
         break;
 
       case 'selected':
+        if (
+          this.menuState !== MenuState.none &&
+          MenuState[state] !== this.menuState
+        ) {
+          this._focusedInit(this.available);
+        }
         this._toggleFocus(this.selected, id);
         break;
     }
 
     this._setMenuState(MenuState[state]);
+    console.log(this.focused);
 
     if (this.focused.length === 0) {
       this._setMenuState(MenuState.none);
       this._initActionStateActive();
     } else {
-      console.log(this.menuState, MenuState.available);
       switch (this.menuState) {
         case MenuState.available:
           // available 인 경우 (좌측)
@@ -252,6 +318,7 @@ export class DualSelectorComponent implements OnInit {
 
     this._emitActionChangeEvent();
     this._initActionStateActive();
+
   }
 
   toSelected(): void {
@@ -269,10 +336,12 @@ export class DualSelectorComponent implements OnInit {
     this._initOrdinal(this.available);
     this._initOrdinal(this.selected);
     this._clearMenuState();
-    this.focused = [];
 
     this._emitActionChangeEvent();
     this._initActionStateActive();
+
+    this.focused = [];
+
   }
 
   /* selected -> available (왼쪽으로) */
@@ -284,10 +353,11 @@ export class DualSelectorComponent implements OnInit {
     this._initOrdinal(this.available);
     this._initOrdinal(this.selected);
     this._clearMenuState();
-    this.focused = [];
 
     this._emitActionChangeEvent();
     this._initActionStateActive();
+
+    this.focused = [];
   }
 
   // 선택된 아이템을 available로 옮깁니다
@@ -295,6 +365,7 @@ export class DualSelectorComponent implements OnInit {
     const focusedItems = this.selected.filter(item => item.focused === true);
     const focusedIds = focusedItems.reduce(reducer, []);
     this._clearFocused(focusedItems);
+
     this.available = [...this.available, ...focusedItems];
 
     this.selected = this.selected.filter(({ id }) => !focusedIds.includes(id));
@@ -302,10 +373,11 @@ export class DualSelectorComponent implements OnInit {
     this._initOrdinal(this.available);
     this._initOrdinal(this.selected);
     this._clearMenuState();
-    this.focused = [];
 
     this._emitActionChangeEvent();
     this._initActionStateActive();
+
+    this.focused = [];
   }
 
   /* 초기화 */

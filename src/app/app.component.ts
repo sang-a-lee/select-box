@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { menus, users } from '../resource/data';
 
+import { menus, users } from '../resource/data';
 import { MenuItem } from './dual-selector/dual-selector.component';
 
 @Component({
