@@ -1,22 +1,20 @@
 /**
  * TODO
  * > 스타일 (notion 참고)
- * ( ) fontawesome 4.7
- * ( ) item -> 왼쪽 정렬 / 영역 너비 반정도 줄이기 / 아이템들 패딩 
- * ( ) 아이템 이름이 많이 길 때 -> ... 붙이기, title attribute (HTML) - tooltip으로 잘려진 부분 볼 수 있도록
- * ( ) input -> bootstrap input sm 적용
- * ( ) 가운데 버튼들 -> vertical align 가운데 / 가로폭 줄이기
- * ( ) 영역 높이 -> 입력으로
+ * [x] fontawesome 4.7
+ * [x] item -> 왼쪽 정렬 / 영역 너비 반정도 줄이기 / 아이템들 패딩 
+ * [x] 아이템 이름이 많이 길 때 -> ... 붙이기, title attribute (HTML) - tooltip으로 잘려진 부분 볼 수 있도록
+ * [x] input -> bootstrap input sm 적용
+ * [x] 가운데 버튼들 -> vertical align 가운데 / 가로폭 줄이기
+ * [ ] 영역 높이 -> 입력으로 받기
  * 
  * > 기능
- * ( ) shift 키 multi select (시작~끝) => flag 지정, (keyup.enter)="onEnterKeyUp($event)"
- * ( ) ESC 키 -> 전체 선택 해제
- * ( ) 드래그/드롭 직접 구현 - HTML5의 drag&drop
+ * [ ] shift 키 multi select (시작~끝) => flag 지정, (keyup.enter)="onEnterKeyUp($event)"
+ * [ ] ESC 키 -> 전체 선택 해제
+ * [ ] 드래그/드롭 직접 구현 - HTML5의 drag&drop
  */
 
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-
-import { faAngleRight,  faAngleDoubleRight, faAngleLeft, faAngleDoubleLeft,faAngleUp, faAngleDown ,faUndo} from '@fortawesome/free-solid-svg-icons';
 
 export class MenuItem {
   id: number;
@@ -64,13 +62,13 @@ const reducer = (acc, curr) => {
   styleUrls: ['./dual-selector.component.less'],
 })
 export class DualSelectorComponent implements OnInit {
-  faAngleRight = faAngleRight;
-  faAngleLeft = faAngleLeft;
-  faAngleDoubleRight = faAngleDoubleRight;
-  faAngleDoubleLeft = faAngleDoubleLeft;
-  faAngleUp = faAngleUp;
-  faAngleDown = faAngleDown;
-  faUndo = faUndo;
+  // faAngleRight = faAngleRight;
+  // faAngleLeft = faAngleLeft;
+  // faAngleDoubleRight = faAngleDoubleRight;
+  // faAngleDoubleLeft = faAngleDoubleLeft;
+  // faAngleUp = faAngleUp;
+  // faAngleDown = faAngleDown;
+  // faUndo = faUndo;
   timer;
 
     movies = [

@@ -1,12 +1,10 @@
 <div class="container">
-  <h1 class="container__title">
-    Dual-Selector
-  </h1>
   <div class="container__inner">
     <div class="container__available">
-      <input class="container__search" type="text" placeholder="검색" (input)="onSearchAvailableChange($event.target.value)">
+      <input class="container__search form-control" type="text" placeholder="search" (input)="onSearchAvailableChange($event.target.value)">
       <ul 
         class="container__list available__list list-group">
+        <li class="list__title list-group-item">Available Options</li>
         <span class="list__empty-text" 
               *ngIf="available.length === 0 || getAvailable().length === 0"
           >
@@ -15,7 +13,6 @@
           }} 없습니다
         </span>
         <li
-          cdkDrag
           *ngFor="let item of getAvailable()"
           class="list__item list-group-item"
           [class.active]="item.focused"
@@ -32,42 +29,43 @@
       (click)="resetItems()"
       class="btn btn-default btn-xs"
       >
-        <fa-icon [icon]="faUndo"></fa-icon>
+        <i class="fa fa-undo" aria-hidden="true"></i>
       </button>
       <button
         [disabled]="!actionStateActive.toSelectedAll"
         (click)="toSelectedAll()"
         class="btn btn-default btn-xs"
       >
-        <strong><fa-icon [icon]="faAngleDoubleRight"></fa-icon></strong>
+        <i class="fa fa-angle-double-right" aria-hidden="true"></i>
       </button>
       <button
         [disabled]="!actionStateActive.toAvailableAll"
         (click)="toAvailableAll()"
         class="btn btn-default btn-xs"
       >
-        <strong><fa-icon [icon]="faAngleDoubleLeft"></fa-icon></strong>
+        <i class="fa fa-angle-double-left" aria-hidden="true"></i>
       </button>
       <button
       [disabled]="!actionStateActive.toSelected"
       (click)="toSelected()"
       class="btn btn-default btn-xs"
       >
-        <fa-icon [icon]="faAngleRight"></fa-icon>
+        <i class="fa fa-angle-right" aria-hidden="true"></i>
       </button>
       <button
         [disabled]="!actionStateActive.toAvailable"
         (click)="toAvailable()"
         class="btn btn-default btn-xs"
       >
-      <fa-icon [icon]="faAngleLeft"></fa-icon>
+        <i class="fa fa-angle-left" aria-hidden="true"></i>
       </button>
     </div>
     <div class="container__selected">
-      <input class="container__search" type="text" placeholder="검색" (input)="onSearchSelectedChange($event.target.value)">
+      <input class="container__search form-control" type="text" placeholder="search" (input)="onSearchSelectedChange($event.target.value)">
       <ul 
         class="container__list selected__list list-group"
         >
+        <li class="list__title list-group-item">Selected Options</li>
         <span class="list__empty-text" 
         *ngIf="selected.length === 0 || getSelected().length === 0"
         >
@@ -76,7 +74,6 @@
           }} 없습니다
         </span>
         <li
-          cdkDrag
           *ngFor="let item of getSelected()"
           (click)="onSelect('selected', item)"
           [class.active]="item.focused"
