@@ -9,12 +9,12 @@
  * [ ] 영역 높이 -> 입력으로 받기
  * 
  * > 기능
- * [ ] shift 키 multi select (시작~끝) => flag 지정, (keyup.enter)="onEnterKeyUp($event)"
- * [ ] ESC 키 -> 전체 선택 해제
+ * [x] shift 키 multi select (시작~끝) => flag 지정, (keyup.enter)="onEnterKeyUp($event)"
+ * [x] ESC 키 -> 전체 선택 해제
  * [ ] 드래그/드롭 직접 구현 - HTML5의 drag&drop
  */
 
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, HostListener } from '@angular/core';
 
 export class MenuItem {
   id: number;
@@ -41,15 +41,6 @@ enum MenuState {
   none,
 }
 
-enum ActionTypes {
-  addAll,
-  add,
-  removeAll,
-  remove,
-  reset,
-  up,
-  down,
-}
 
 const reducer = (acc, curr) => {
   acc.push(curr.id);
@@ -62,13 +53,6 @@ const reducer = (acc, curr) => {
   styleUrls: ['./dual-selector.component.less'],
 })
 export class DualSelectorComponent implements OnInit {
-  // faAngleRight = faAngleRight;
-  // faAngleLeft = faAngleLeft;
-  // faAngleDoubleRight = faAngleDoubleRight;
-  // faAngleDoubleLeft = faAngleDoubleLeft;
-  // faAngleUp = faAngleUp;
-  // faAngleDown = faAngleDown;
-  // faUndo = faUndo;
   timer;
 
     movies = [
@@ -106,9 +90,11 @@ export class DualSelectorComponent implements OnInit {
     down: false,
   };
 
+  fromFocusId: number;
+  toFocusId: number;
+  isShiftKeyDown: boolean = false;
+
   constructor() {}
-
-
 
   ngOnInit(): void {
     [this.available, this.selected] = this._mapData(this.data);
@@ -118,6 +104,24 @@ export class DualSelectorComponent implements OnInit {
   ngOnChanges({ data: { currentValue } }): void {
     [this.available, this.selected] = this._mapData(currentValue);
     this._emitActionChangeEvent();
+  }
+
+  // esc key
+  @HostListener('document:keydown.escape', ['$event']) 
+  onEscapeKeydownHandler(evt: KeyboardEvent) {
+    this._clearFocused(this.selected);
+    this._clearFocused(this.available);
+  }
+
+  // shift key
+  @HostListener('document:keydown.shift', ['$event']) 
+  onShiftKeydownHandler(evt: KeyboardEvent) {
+    this.isShiftKeyDown = true;
+  }
+
+  @HostListener('document:keyup.shift', ['$event']) 
+  onShiftKeyupHandler(evt: KeyboardEvent) {
+    this.isShiftKeyDown = false;
   }
 
 
@@ -167,9 +171,9 @@ export class DualSelectorComponent implements OnInit {
     });
   }
 
-  private _focusedInit(list: MenuItem[]):void {
+  private _focusedInit(list: MenuItem[], v:boolean):void {
     for(let i=0; i<list.length; i++) {
-      list[i].focused = false;
+      list[i].focused = v;
     }
   }
 
@@ -207,7 +211,6 @@ export class DualSelectorComponent implements OnInit {
     },100)
   }
 
-
   onSelect(state: string, item: MenuItem): void {
     const { id } = item;
 
@@ -217,34 +220,65 @@ export class DualSelectorComponent implements OnInit {
       this.focused = this.focused.filter(focusId => focusId !== id);
     }
 
+    console.log('onSelect',this.focused)
+    if(this.isShiftKeyDown) {
+      console.log("shift key down! and Select!")
+      this.fromFocusId = this.focused[0];
+      this.toFocusId = this.focused[this.focused.length - 1];
 
-    switch (state) {
-      case 'available':
-        if (
-          this.menuState !== MenuState.none &&
-          MenuState[state] !== this.menuState
-        ) {
-          this._focusedInit(this.selected);
-        }
-        this._toggleFocus(this.available, id);
-        break;
+      let fromIdx, toIdx;
+      switch(state) {
+        case 'available':
+          // from, to의 available에서의 위치 알아내기
+          // 그리고 from-to(idx) focused T 하기
+          fromIdx = this.available.findIndex((item)=>item.id === this.fromFocusId)
+          toIdx = this.available.findIndex((item)=>item.id === this.toFocusId)
+          for(let i=fromIdx; i<=toIdx; i++) {
+            this.available[i].focused = true;
+          }
+          break;
 
-      case 'selected':
-        if (
-          this.menuState !== MenuState.none &&
-          MenuState[state] !== this.menuState
-        ) {
-          this._focusedInit(this.available);
-        }
-        this._toggleFocus(this.selected, id);
-        break;
+        case 'selected':
+          fromIdx = this.selected.findIndex((item)=>item.id === this.fromFocusId)
+          toIdx = this.selected.findIndex((item)=>item.id === this.toFocusId)
+          for(let i=fromIdx; i<=toIdx; i++) {
+            this.selected[i].focused = true;
+          }
+          break;
+      }
+
+
+    } else {
+      switch (state) {
+        case 'available':
+          if (
+            this.menuState !== MenuState.none &&
+            MenuState[state] !== this.menuState
+          ) {
+            this._focusedInit(this.selected, false);
+          }
+          this._toggleFocus(this.available, id);
+          break;
+  
+        case 'selected':
+          if (
+            this.menuState !== MenuState.none &&
+            MenuState[state] !== this.menuState
+          ) {
+            this._focusedInit(this.available, false);
+          }
+          this._toggleFocus(this.selected, id);
+          break;
+      }
     }
+
+
 
     this._setMenuState(MenuState[state]);
 
-    if (this.focused.length === 0) {
-      this._setMenuState(MenuState.none);
-      this._initActionStateActive();
+    if (this.focused.length === 0) { // 선택된 것이 없는 경우
+      this._setMenuState(MenuState.none); // menu state 초기화
+      this._initActionStateActive();      // 메뉴(action) 상태 초기화
     } else {
       switch (this.menuState) {
         case MenuState.available:
@@ -321,8 +355,7 @@ export class DualSelectorComponent implements OnInit {
     // 모든 아이템을 selected로 옮깁니다
     this.selected = [...this.selected, ...this.available];
     this.available = [];
-    //
-    // this._initOrdinal(this.available);
+
     this._initOrdinal(this.selected);
     this._clearMenuState();
     this.focused = [];
@@ -334,7 +367,6 @@ export class DualSelectorComponent implements OnInit {
 
   toSelected(): void {
     // 선택된 아이템을 selected로 옮깁니다
-
     const focusedItems = this.available.filter(item => item.focused === true);
     const focusedIds = focusedItems.reduce(reducer, []);
     this._clearFocused(focusedItems);
@@ -360,7 +392,7 @@ export class DualSelectorComponent implements OnInit {
   toAvailableAll(): void {
     this.available = [...this.available, ...this.selected];
     this.selected = [];
-    //
+
     this._initOrdinal(this.available);
     this._initOrdinal(this.selected);
     this._clearMenuState();
@@ -380,7 +412,7 @@ export class DualSelectorComponent implements OnInit {
     this.available = [...this.available, ...focusedItems];
 
     this.selected = this.selected.filter(({ id }) => !focusedIds.includes(id));
-    //
+
     this._initOrdinal(this.available);
     this._initOrdinal(this.selected);
     this._clearMenuState();
