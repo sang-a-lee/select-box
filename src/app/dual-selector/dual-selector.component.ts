@@ -220,29 +220,62 @@ export class DualSelectorComponent implements OnInit {
       this.focused = this.focused.filter(focusId => focusId !== id);
     }
 
-    console.log('onSelect',this.focused)
+    switch(state) {
+      case 'available':
+        if (
+          this.menuState !== MenuState.none &&
+          MenuState[state] !== this.menuState
+          ) {
+            this._focusedInit(this.selected, false);
+            this._focusedInit(this.available, false);
+            this.focused = [];
+          }
+        break;
+
+      case 'selected':
+        if (
+          this.menuState !== MenuState.none &&
+          MenuState[state] !== this.menuState
+          ) {
+            this._focusedInit(this.selected, false);
+            this._focusedInit(this.available, false);
+            this.focused = [];
+            
+          }
+        break;
+    }
+
+
     if(this.isShiftKeyDown) {
-      console.log("shift key down! and Select!")
       this.fromFocusId = this.focused[0];
       this.toFocusId = this.focused[this.focused.length - 1];
+      let fromIdx:number, toIdx:number;
 
-      let fromIdx, toIdx;
       switch(state) {
         case 'available':
-          // from, to의 available에서의 위치 알아내기
-          // 그리고 from-to(idx) focused T 하기
           fromIdx = this.available.findIndex((item)=>item.id === this.fromFocusId)
           toIdx = this.available.findIndex((item)=>item.id === this.toFocusId)
-          for(let i=fromIdx; i<=toIdx; i++) {
-            this.available[i].focused = true;
+
+          if(fromIdx === -1 || toIdx === -1) {
+            this.isShiftKeyDown = false;
+          }
+          else{
+            for(let i=fromIdx; i<=toIdx; i++) {
+              this.available[i].focused = true;
+            }
           }
           break;
 
         case 'selected':
           fromIdx = this.selected.findIndex((item)=>item.id === this.fromFocusId)
           toIdx = this.selected.findIndex((item)=>item.id === this.toFocusId)
-          for(let i=fromIdx; i<=toIdx; i++) {
-            this.selected[i].focused = true;
+          if(fromIdx === -1 || toIdx === -1) {
+            this.isShiftKeyDown = false;
+          }
+         else {
+            for(let i=fromIdx; i<=toIdx; i++) {
+              this.selected[i].focused = true;
+            }
           }
           break;
       }
@@ -251,22 +284,10 @@ export class DualSelectorComponent implements OnInit {
     } else {
       switch (state) {
         case 'available':
-          if (
-            this.menuState !== MenuState.none &&
-            MenuState[state] !== this.menuState
-          ) {
-            this._focusedInit(this.selected, false);
-          }
           this._toggleFocus(this.available, id);
           break;
   
         case 'selected':
-          if (
-            this.menuState !== MenuState.none &&
-            MenuState[state] !== this.menuState
-          ) {
-            this._focusedInit(this.available, false);
-          }
           this._toggleFocus(this.selected, id);
           break;
       }
@@ -279,6 +300,9 @@ export class DualSelectorComponent implements OnInit {
     if (this.focused.length === 0) { // 선택된 것이 없는 경우
       this._setMenuState(MenuState.none); // menu state 초기화
       this._initActionStateActive();      // 메뉴(action) 상태 초기화
+      this._focusedInit(this.selected, false);
+      this._focusedInit(this.available, false);
+
     } else {
       switch (this.menuState) {
         case MenuState.available:
