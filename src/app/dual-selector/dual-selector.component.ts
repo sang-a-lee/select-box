@@ -1,17 +1,26 @@
 /**
  * TODO
  * > 스타일 (notion 참고)
- * [x] fontawesome 4.7
- * [x] item -> 왼쪽 정렬 / 영역 너비 반정도 줄이기 / 아이템들 패딩 
- * [x] 아이템 이름이 많이 길 때 -> ... 붙이기, title attribute (HTML) - tooltip으로 잘려진 부분 볼 수 있도록
- * [x] input -> bootstrap input sm 적용
- * [x] 가운데 버튼들 -> vertical align 가운데 / 가로폭 줄이기
- * [ ] 영역 높이 -> 입력으로 받기
+ * [x] 아이템 이름이 많이 길 때 tooltip으로 잘려진 부분 볼 수 있도록
+ * [ ] 이미지와 아이콘을 넣고 싶다면? - angular에서 지원하는 template ~ <ng-template>
+ * => cmpt 안에서 template을 어떻게 활용할 수 있는지 생각해보기
+ * 내가 원하는 값이 표시가 될 수 있도록
+ * 
+ * > 소메뉴
+ * [x] 타이틀 보이기 on/off
+ * [x] Available, Selected 이름 변경
+ * [x] search on/off
+ * [x] 하나씩만 옮기기 on/off
+ * [x] 아이템 크기 크게/작게
+ * [x] width 크기 조정
+ * [x] height 크기 조정
+ * [x] 선택된 아이템 갯수 표시
+ * 레퍼런스 찾아보기 https://angular.kr/guide/structural-directives#ng-template
  * 
  * > 기능
- * [x] shift 키 multi select (시작~끝) => flag 지정, (keyup.enter)="onEnterKeyUp($event)"
- * [x] ESC 키 -> 전체 선택 해제
+ * [x] multi select => 최소, 최대
  * [ ] 드래그/드롭 직접 구현 - HTML5의 drag&drop
+ * https://developer.mozilla.org/ko/docs/Web/API/HTML_%EB%93%9C%EB%9E%98%EA%B7%B8_%EC%95%A4_%EB%93%9C%EB%A1%AD_API
  */
 
 import { Component, OnInit, Input, Output, EventEmitter, HostListener } from '@angular/core';
@@ -41,6 +50,12 @@ enum MenuState {
   none,
 }
 
+enum ItemSize {
+  xs = 'xs',
+  s = 's',
+  m = 'm'
+}
+
 
 const reducer = (acc, curr) => {
   acc.push(curr.id);
@@ -55,22 +70,12 @@ const reducer = (acc, curr) => {
 export class DualSelectorComponent implements OnInit {
   timer;
 
-    movies = [
-    'Episode I - The Phantom Menace',
-    'Episode II - Attack of the Clones',
-    'Episode III - Revenge of the Sith',
-    'Episode IV - A New Hope',
-    'Episode V - The Empire Strikes Back',
-    'Episode VI - Return of the Jedi',
-    'Episode VII - The Force Awakens',
-    'Episode VIII - The Last Jedi',
-    'Episode IX – The Rise of Skywalker'
-  ];
-
-
   @Input() data: MenuItem[];
   @Output() actionChange = new EventEmitter();
   @Output() reset = new EventEmitter();
+
+  availableTitle: string="Available Options";
+  selectedTitle: string="Selected Options";
 
   available: MenuItem[] = [];
   availableSearchKeyword:string = '';
@@ -79,6 +84,9 @@ export class DualSelectorComponent implements OnInit {
   selectedSearchKeyword:string = '';
 
   focused: number[] = [];
+  selectedFocusedCount: number = 0;
+  availableFocusedCount: number = 0;
+  
   menuState = MenuState.none;
   actionStateActive = {
     toSelectedAll: true,
@@ -90,8 +98,19 @@ export class DualSelectorComponent implements OnInit {
     down: false,
   };
 
-  fromFocusId: number;
-  toFocusId: number;
+  optionStateActive = {
+    optionMenu: true,
+    title: true,
+    search: true,
+    moveOne: false,
+    showSelectedItemsCount: true
+  }
+
+  itemSize:string = ItemSize.s;
+
+  maxWidth:number = 171;
+  maxHeight: number = 300;
+
   isShiftKeyDown: boolean = false;
 
   constructor() {}
@@ -111,6 +130,9 @@ export class DualSelectorComponent implements OnInit {
   onEscapeKeydownHandler(evt: KeyboardEvent) {
     this._clearFocused(this.selected);
     this._clearFocused(this.available);
+    this.focused = [];
+    this.selectedFocusedCount = 0;
+    this.availableFocusedCount = 0;
   }
 
   // shift key
@@ -124,6 +146,58 @@ export class DualSelectorComponent implements OnInit {
     this.isShiftKeyDown = false;
   }
 
+  /**
+   * id가 없으면 focused에 넣고, 있으면 focused에서 빼기
+   * @param {number} id 
+   */
+  private _toggleIdFocused(id:number, state:MenuState) {
+    if (!this.focused.includes(id)) {
+      this.focused.push(id);
+
+      switch(state) {
+        case MenuState.available:
+          this.availableFocusedCount++;
+          break;
+
+        case MenuState.selected:
+          this.selectedFocusedCount++;
+          break;
+      }
+
+    } else {
+      this.focused = this.focused.filter(focusId => focusId !== id);
+      switch(state) {
+        case MenuState.available:
+          this.availableFocusedCount--;
+          break;
+
+        case MenuState.selected:
+          this.selectedFocusedCount--;
+          break;
+      }
+    }
+  }
+
+  /**
+   * id가 없을 때에만 focused에 넣기, 이미 있으면 무시
+   * @param {number} id 
+   */
+  private _pushToFocused(id:number, state:MenuState) {
+    if (!this.focused.includes(id)) {
+      this.focused.push(id);
+
+      switch(state) {
+        case MenuState.available:
+          this.availableFocusedCount++;
+          break;
+
+        case MenuState.selected:
+          this.selectedFocusedCount++;
+          break;
+      }
+
+    }
+  }
 
   private _initActionStateActive() {
     this.actionStateActive = {
@@ -195,7 +269,49 @@ export class DualSelectorComponent implements OnInit {
     return ret;
   }
 
+  onChangeAvailableTitle(newTitle:string) {
+    this.availableTitle = newTitle;
+  }
 
+  onChangeSelectedTitle(newTitle:string) {
+    this.selectedTitle = newTitle;
+  }
+
+  onSizeChange(size) {
+    this.itemSize = size;
+  }
+
+  onSettingMenuClick() {
+    this.optionStateActive.optionMenu = !this.optionStateActive.optionMenu;
+  }
+  onTitleClick() {
+    this.optionStateActive.title = !this.optionStateActive.title 
+  }
+  onSearchClick() {
+    this.optionStateActive.search = !this.optionStateActive.search 
+  }
+  onMoveOnClick() {
+    this.optionStateActive.moveOne = !this.optionStateActive.moveOne 
+  }
+  onSelectedItemsCountClick() {
+    this.optionStateActive.showSelectedItemsCount = 
+    !this.optionStateActive.showSelectedItemsCount 
+  }
+
+  onSearchMaxWidthChange(newMaxWidth:number) {
+
+    clearTimeout(this.timer);
+    this.timer = setTimeout(()=>{
+      this.maxWidth = newMaxWidth
+    }, 100)
+  }
+
+  onSearchMaxHeightChange(newMaxHeight: number) {
+    clearTimeout(this.timer);
+    this.timer = setTimeout(()=>{
+      this.maxHeight = newMaxHeight
+    }, 100)
+  }
 
   onSearchAvailableChange(keyword) {
     clearTimeout(this.timer);
@@ -214,164 +330,190 @@ export class DualSelectorComponent implements OnInit {
   onSelect(state: string, item: MenuItem): void {
     const { id } = item;
 
-    if (!this.focused.includes(id)) {
-      this.focused.push(id);
-    } else {
-      this.focused = this.focused.filter(focusId => focusId !== id);
-    }
+    // if(this.optionStateActive.moveOne)
+    // this.optionStateActive.moveOne === true
+    // this.optionStateActive.moveOne === false
+    /**
+     * 만약 [한 개만 움직이기] 상태일 경우, this.focused 길이가 0일때만 아래 가능
+     * 만약 [한 개만 움직이기]
+     */
 
-    switch(state) {
-      case 'available':
-        if (
-          this.menuState !== MenuState.none &&
-          MenuState[state] !== this.menuState
-          ) {
-            this._focusedInit(this.selected, false);
-            this._focusedInit(this.available, false);
-            this.focused = [];
-          }
-        break;
+     if(
+       (this.optionStateActive.moveOne && this.focused.length === 0) ||
+       (!this.optionStateActive.moveOne) ||
+       (this.focused[0] === id)
+     ) {
 
-      case 'selected':
-        if (
-          this.menuState !== MenuState.none &&
-          MenuState[state] !== this.menuState
-          ) {
-            this._focusedInit(this.selected, false);
-            this._focusedInit(this.available, false);
-            this.focused = [];
-            
-          }
-        break;
-    }
-
-
-    if(this.isShiftKeyDown) {
-      this.fromFocusId = this.focused[0];
-      this.toFocusId = this.focused[this.focused.length - 1];
-      let fromIdx:number, toIdx:number;
+      this._toggleIdFocused(id, MenuState[state]);
 
       switch(state) {
         case 'available':
-          fromIdx = this.available.findIndex((item)=>item.id === this.fromFocusId)
-          toIdx = this.available.findIndex((item)=>item.id === this.toFocusId)
-
-          if(fromIdx === -1 || toIdx === -1) {
-            this.isShiftKeyDown = false;
-          }
-          else{
-            for(let i=fromIdx; i<=toIdx; i++) {
-              this.available[i].focused = true;
+          if (
+            this.menuState !== MenuState.none &&
+            MenuState[state] !== this.menuState
+            ) {
+              this._focusedInit(this.selected, false);
+              this._focusedInit(this.available, false);
+              this.focused = [];
+              this.availableFocusedCount = 0;
+              this.selectedFocusedCount = 0;
             }
-          }
           break;
 
         case 'selected':
-          fromIdx = this.selected.findIndex((item)=>item.id === this.fromFocusId)
-          toIdx = this.selected.findIndex((item)=>item.id === this.toFocusId)
-          if(fromIdx === -1 || toIdx === -1) {
-            this.isShiftKeyDown = false;
-          }
-         else {
-            for(let i=fromIdx; i<=toIdx; i++) {
-              this.selected[i].focused = true;
+          if (
+            this.menuState !== MenuState.none &&
+            MenuState[state] !== this.menuState
+            ) {
+              this._focusedInit(this.selected, false);
+              this._focusedInit(this.available, false);
+              this.focused = [];
+              this.availableFocusedCount = 0;
+              this.selectedFocusedCount = 0;
             }
-          }
           break;
       }
 
 
-    } else {
-      switch (state) {
-        case 'available':
-          this._toggleFocus(this.available, id);
-          break;
-  
-        case 'selected':
-          this._toggleFocus(this.selected, id);
-          break;
-      }
-    }
+      if(this.isShiftKeyDown) {
+        let list:number[], from:number, to:number;
 
+        switch(state) {
+          case 'available':
+            list = this.focused.map(focusedItemId => (
+              this.available.findIndex(({id})=>id === focusedItemId)
+            ))
 
+            from = Math.min(...list);
+            to = Math.max(...list);
 
-    this._setMenuState(MenuState[state]);
+            if(from !== Infinity && to !== -Infinity){
+              for(let i=from; i<=to; i++) {
+                this.available[i].focused = true;
+                this._pushToFocused(this.available[i].id, MenuState[state]);
+              }
+            } else {
+              this.isShiftKeyDown = false;
+            }
 
-    if (this.focused.length === 0) { // 선택된 것이 없는 경우
-      this._setMenuState(MenuState.none); // menu state 초기화
-      this._initActionStateActive();      // 메뉴(action) 상태 초기화
-      this._focusedInit(this.selected, false);
-      this._focusedInit(this.available, false);
+            break;
 
-    } else {
-      switch (this.menuState) {
-        case MenuState.available:
-          // available 인 경우 (좌측)
-          // -> remove 비활성화
-          this.actionStateActive = {
-            ...this.actionStateActive,
-            toAvailable: false,
-            toSelected: true,
-          };
-          break;
+          case 'selected':
+            list = this.focused.map(focusedItemId => (
+              this.selected.findIndex(({id})=>id === focusedItemId)
+            ))        
 
-        case MenuState.selected:
-          // selected 인 경우 (좌측)
-          // <- add 비활성화
-          this.actionStateActive = {
-            ...this.actionStateActive,
-            toAvailable: true,
-            toSelected: false,
-          };
-          break;
-      }
-    }
+            from = Math.min(...list);
+            to = Math.max(...list);
 
-    if (state === 'selected') {
-      if (this.focused.length === 0 || this.focused.length > 1) {
-        this.actionStateActive = {
-          ...this.actionStateActive,
-          up: false,
-          down: false,
-        };
+            if(from !== Infinity && to !== -Infinity){
+              for(let i=from; i<=to; i++) {
+                this.selected[i].focused = true;
+                this._pushToFocused(this.selected[i].id, MenuState[state]);
+              }
+            }else {
+              this.isShiftKeyDown = false;
+            }
+
+            break;
+        }
+
       } else {
-        // selected 에서
-        // 한개만 클릭된 경우
 
-        const { ordinal } = this.selected.filter(
-          item => item.id === this.focused[0]
-        )[0];
+        switch (state) {
+          case 'available':
+            this._toggleFocus(this.available, id);
+            break;
+    
+          case 'selected':
+            this._toggleFocus(this.selected, id);
+            break;
+        }
 
-        if (this.selected.length === 1) {
+      }
+
+
+
+      this._setMenuState(MenuState[state]);
+
+      if (this.focused.length === 0) { // 선택된 것이 없는 경우
+        this._setMenuState(MenuState.none); // menu state 초기화
+        this._initActionStateActive();      // 메뉴(action) 상태 초기화
+        this._focusedInit(this.selected, false);
+        this._focusedInit(this.available, false);
+
+      } else {
+        switch (this.menuState) {
+          case MenuState.available:
+            // available 인 경우 (좌측)
+            // -> remove 비활성화
+            this.actionStateActive = {
+              ...this.actionStateActive,
+              toAvailable: false,
+              toSelected: true,
+            };
+            break;
+
+          case MenuState.selected:
+            // selected 인 경우 (좌측)
+            // <- add 비활성화
+            this.actionStateActive = {
+              ...this.actionStateActive,
+              toAvailable: true,
+              toSelected: false,
+            };
+            break;
+        }
+      }
+
+      if (state === 'selected') {
+        if (this.focused.length === 0 || this.focused.length > 1) {
           this.actionStateActive = {
             ...this.actionStateActive,
             up: false,
             down: false,
           };
         } else {
-          if (ordinal === 0) {
+          // selected 에서
+          // 한개만 클릭된 경우
+
+          const { ordinal } = this.selected.filter(
+            item => item.id === this.focused[0]
+          )[0];
+
+          if (this.selected.length === 1) {
             this.actionStateActive = {
               ...this.actionStateActive,
               up: false,
-              down: true,
-            };
-          } else if (ordinal === this.selected.length - 1) {
-            this.actionStateActive = {
-              ...this.actionStateActive,
-              up: true,
               down: false,
             };
           } else {
-            this.actionStateActive = {
-              ...this.actionStateActive,
-              up: true,
-              down: true,
-            };
+            if (ordinal === 0) {
+              this.actionStateActive = {
+                ...this.actionStateActive,
+                up: false,
+                down: true,
+              };
+            } else if (ordinal === this.selected.length - 1) {
+              this.actionStateActive = {
+                ...this.actionStateActive,
+                up: true,
+                down: false,
+              };
+            } else {
+              this.actionStateActive = {
+                ...this.actionStateActive,
+                up: true,
+                down: true,
+              };
+            }
           }
         }
+      } else {
       }
-    } else {
+
     }
+
   }
   // setter, getter
   /* available -> selected (오른쪽으로) */
@@ -383,6 +525,8 @@ export class DualSelectorComponent implements OnInit {
     this._initOrdinal(this.selected);
     this._clearMenuState();
     this.focused = [];
+    this.availableFocusedCount = 0;
+    this.selectedFocusedCount = 0;
 
     this._emitActionChangeEvent();
     this._initActionStateActive();
@@ -408,6 +552,8 @@ export class DualSelectorComponent implements OnInit {
     this._initActionStateActive();
 
     this.focused = [];
+    this.availableFocusedCount = 0;
+    this.selectedFocusedCount = 0;
 
   }
 
@@ -425,6 +571,8 @@ export class DualSelectorComponent implements OnInit {
     this._initActionStateActive();
 
     this.focused = [];
+    this.availableFocusedCount = 0;
+    this.selectedFocusedCount = 0;
   }
 
   // 선택된 아이템을 available로 옮깁니다
@@ -445,6 +593,8 @@ export class DualSelectorComponent implements OnInit {
     this._initActionStateActive();
 
     this.focused = [];
+    this.availableFocusedCount = 0;
+    this.selectedFocusedCount = 0;
   }
 
   /* 초기화 */
@@ -464,6 +614,8 @@ export class DualSelectorComponent implements OnInit {
     }
 
     this.focused = [];
+    this.availableFocusedCount = 0;
+    this.selectedFocusedCount = 0;
     this._initActionStateActive();
   }
 
@@ -478,6 +630,8 @@ export class DualSelectorComponent implements OnInit {
     }
 
     this.focused = [];
+    this.availableFocusedCount = 0;
+    this.selectedFocusedCount = 0;
     this._initActionStateActive();
   }
 

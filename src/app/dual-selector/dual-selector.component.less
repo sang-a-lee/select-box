@@ -4,13 +4,65 @@
 
 .container {
   .container__inner {
+    position: relative;
     display: flex;
     justify-content: center;
+
+    .setting {
+      position: absolute;
+      top: 0;
+      right: 0;
+
+      .setting__button {
+        height: 3.5rem;
+      }
+
+      .setting__list {
+        position: absolute;
+        display: block;
+        top: 3.5rem;
+        right: 0;
+        width: 18rem;
+        border-radius: 5px;
+        border: solid 0.01rem rgba(gray, 0.3);
+        padding: 0;
+        list-style-type: none;
+
+        .list__item {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0.8rem 0;
+          width: 100%;
+          font-size: 1.1rem;
+          border-bottom: solid 0.01rem rgba(gray, 0.3);
+          cursor: pointer;
+
+          input {
+            height: 2.5rem;
+            font-size: 1rem;
+            margin: 0.1rem 0;
+          }
+        }
+      }
+    }
 
     // available, selected 공통
     .container__available,
     .container__selected {
-      width: 25%;
+      width: 15%;
+      position: relative;
+    }
+
+    .list__count {
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      bottom: 0;
+      border: solid 0.01rem rgba(gray, 0.3);
+      border-radius: 0px 0px 5px 5px;
+      margin-top: 2rem;
     }
 
     .container__search {
@@ -21,7 +73,7 @@
       height: 35vh;
       overflow-y: scroll;
       border: solid 0.01rem rgba(gray, 0.3);
-      border-radius: 5px;
+      border-radius: 5px 5px 0px 0px;
 
       .list__title {
         font-size: 1.5rem;
@@ -38,15 +90,32 @@
       }
 
       .list__item {
-        display: block;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        overflow: hidden;
-
-        height: 3.5rem;
         width: 100%;
-        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
         cursor: pointer;
+
+        span {
+          display: block;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          overflow: hidden;
+        }
+
+        &.xs {
+          height: 2.8rem;
+          font-size: 0.8rem;
+        }
+
+        &.s {
+          height: 3.3rem;
+          font-size: 1.1rem;
+        }
+
+        &.m {
+          height: 3.8rem;
+          font-size: 1.6rem;
+        }
       }
     }
 

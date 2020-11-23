@@ -17,6 +17,7 @@ export class AppComponent {
   mapPair: any = {
     id: 'id',
   };
+  maxHeight:number = 500;
 
   ngOnInit(): void {
     this.initData();

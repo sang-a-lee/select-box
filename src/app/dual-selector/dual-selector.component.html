@@ -1,10 +1,126 @@
 <div class="container">
   <div class="container__inner">
-    <div class="container__available">
-      <input class="container__search form-control" type="text" placeholder="search" (input)="onSearchAvailableChange($event.target.value)">
+
+    <div class="setting">
+      <button class="setting__button setting__icon btn btn-default" (click)="onSettingMenuClick()">
+        <i class="fa fa-cog" aria-hidden="true"></i>
+      </button>
+      <ul
+        class="setting__list"
+        *ngIf="optionStateActive.optionMenu">
+        <li 
+          class="list__item"
+          (click)="onTitleClick()"
+          >타이틀
+            {{
+              optionStateActive.title ? "OFF":"ON"
+            }}
+        </li>
+        <li
+          *ngIf="optionStateActive.title"
+          class="list__item"
+        >
+          <div>
+            <input type="text" 
+              class="form-control" 
+              type="text" 
+              placeholder="{{availableTitle}}"
+              (change)="onChangeAvailableTitle($event.target.value)"
+              />
+            <input type="text" 
+            class="form-control" 
+            type="text" 
+            placeholder="{{selectedTitle}}" 
+            (change)="onChangeSelectedTitle($event.target.value)"
+            />
+          </div>
+        </li>
+        <li 
+          class="list__item"
+          (click)="onSearchClick()"
+          >검색
+          {{
+            optionStateActive.search ? "OFF":"ON"
+          }}
+        </li>
+        <li 
+          class="list__item"
+          (click)="onMoveOnClick()"
+          >하나씩만 옮기기
+          {{
+            optionStateActive.moveOne ? "OFF":"ON"
+          }}
+        </li>
+        <li 
+          class="list__item"
+          (click)="onSelectedItemsCountClick()"
+          >선택된 아이템 갯수 표시
+          {{
+            optionStateActive.showSelectedItemsCount ? "OFF":"ON"
+          }}
+        </li>
+        <li
+          class="list__item"
+        >
+          <div>
+            <span>
+              아이템 크기
+            </span>
+            <input value="xs" 
+              type="radio" 
+              name="item__size" 
+              (change)="onSizeChange($event.target.value)">xs
+            <input value="s" 
+              type="radio" 
+              name="item__size" 
+              (change)="onSizeChange($event.target.value)" 
+              checked>s
+            <input value="m" 
+              type="radio" 
+              name="item__size" 
+              (change)="onSizeChange($event.target.value)">m
+          </div>
+        </li>
+      
+        <li class="list__item">
+          <div>
+            <input type="text" class="form-control" type="text" placeholder="가로 (현재: {{maxWidth}} px)"
+              (input)="onSearchMaxWidthChange($event.target.value)"
+            >
+            <input type="text" class="form-control" type="text" placeholder="세로 (현재: {{maxHeight}} px)"
+              (input)="onSearchMaxHeightChange($event.target.value)"
+            >
+
+
+          </div>
+        </li>
+    </ul>
+      
+    </div>
+    <!-- * 타이틀 보이기 on/off - Available, Selected Options, 및 이름 변경
+    * search on/off
+    * 하나씩만 옮기기 on/off
+    * 아이템 크기 크게/작게 , width도 조정 가능하게
+    * 선택된 아이템 갯수 표시 -->
+    
+    <div 
+      class="container__available"
+      [style.width.px]="maxWidth"
+    >
+      <input 
+        *ngIf="optionStateActive.search"
+        class="container__search form-control" 
+        type="text" 
+        placeholder="search" 
+        (input)="onSearchAvailableChange($event.target.value)">
       <ul 
-        class="container__list available__list list-group">
-        <li class="list__title list-group-item">Available Options</li>
+        class="container__list available__list list-group"
+        [style.height.px]="maxHeight"
+        >
+        <li 
+          *ngIf="optionStateActive.title"
+          class="list__title list-group-item">
+          {{availableTitle}}</li>
         <span class="list__empty-text" 
               *ngIf="available.length === 0 || getAvailable().length === 0"
           >
@@ -14,13 +130,21 @@
         </span>
         <li
           *ngFor="let item of getAvailable()"
-          class="list__item list-group-item"
+          class="list__item list-group-item {{itemSize}}"
           [class.active]="item.focused"
           (click)="onSelect('available', item)"
+          title={{item.name}}
         >
-          {{ item.name }}
+          <span>
+            {{ item.name }}
+          </span>
         </li>
       </ul>
+      <div 
+        *ngIf="optionStateActive.showSelectedItemsCount"
+        class="list__count">
+          {{availableFocusedCount}} / {{available.length}}
+      </div>
     </div>
     <div class="container__action btn-group-vertical" role="group">
       <button
@@ -60,28 +184,46 @@
         <i class="fa fa-angle-left" aria-hidden="true"></i>
       </button>
     </div>
-    <div class="container__selected">
-      <input class="container__search form-control" type="text" placeholder="search" (input)="onSearchSelectedChange($event.target.value)">
+    <div 
+      class="container__selected"
+      [style.width.px]="maxWidth"
+      >
+      <input 
+        *ngIf="optionStateActive.search"
+        class="container__search form-control" 
+        type="text" placeholder="search" 
+        (input)="onSearchSelectedChange($event.target.value)">
       <ul 
         class="container__list selected__list list-group"
+        [style.height.px]="maxHeight"
         >
-        <li class="list__title list-group-item">Selected Options</li>
-        <span class="list__empty-text" 
-        *ngIf="selected.length === 0 || getSelected().length === 0"
-        >
-          {{
-            selected.length === 0 ? '아이템이' : '검색 결과가'
-          }} 없습니다
-        </span>
+        <li
+          *ngIf="optionStateActive.title"
+          class="list__title list-group-item">{{selectedTitle}}</li>
+          <span class="list__empty-text" 
+          *ngIf="selected.length === 0 || getSelected().length === 0"
+          >
+            {{
+              selected.length === 0 ? '아이템이' : '검색 결과가'
+            }} 없습니다
+          </span>
         <li
           *ngFor="let item of getSelected()"
           (click)="onSelect('selected', item)"
           [class.active]="item.focused"
-          class="list__item list-group-item"
+          class="list__item list-group-item {{itemSize}}"
+          title={{item.name}}
         >
-          {{ item.name }}
+          <span>
+            {{ item.name }}
+          </span>
         </li>
       </ul>
+      <div 
+        *ngIf="optionStateActive.showSelectedItemsCount"
+        class="list__count">
+        {{selectedFocusedCount}} / {{selected.length}}
+      </div>
       <!-- <div class="selected__move">
         <button
           [disabled]="!actionStateActive.up"
