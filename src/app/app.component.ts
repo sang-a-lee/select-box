@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 
-import { menus, users } from '../resource/data';
+import { emojiMenus, users } from '../resource/data';
 import { MenuItem } from './dual-selector/dual-selector.component';
 
 @Component({
@@ -54,11 +54,10 @@ export class AppComponent {
 
   initData(): void {
     this.menuItems = [];
-    /* menus */
-    this.original = [...menus];
-    menus.forEach(json => {
+    /* emojiMenus */
+    this.original = [...emojiMenus];
+    emojiMenus.forEach(json => {
       const item = MenuItem.parse(json);
-      //
       this.menuItems.push(item);
     });
 

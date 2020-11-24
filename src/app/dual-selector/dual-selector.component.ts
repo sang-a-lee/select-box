@@ -1,29 +1,17 @@
 /**
  * TODO
- * > 스타일 (notion 참고)
- * [x] 아이템 이름이 많이 길 때 tooltip으로 잘려진 부분 볼 수 있도록
- * [ ] 이미지와 아이콘을 넣고 싶다면? - angular에서 지원하는 template ~ <ng-template>
- * => cmpt 안에서 template을 어떻게 활용할 수 있는지 생각해보기
- * 내가 원하는 값이 표시가 될 수 있도록
+ * > 템플릿
+ * [x] ng-template 을 사용하여, 원하는 값이 표시될 수 있도록 템플릿 만들어두기
  * 
  * > 소메뉴
- * [x] 타이틀 보이기 on/off
- * [x] Available, Selected 이름 변경
- * [x] search on/off
- * [x] 하나씩만 옮기기 on/off
- * [x] 아이템 크기 크게/작게
- * [x] width 크기 조정
- * [x] height 크기 조정
- * [x] 선택된 아이템 갯수 표시
+ * [ ] 하나씩만 옮기기 on/off => 커서가 옮겨가기
  * 레퍼런스 찾아보기 https://angular.kr/guide/structural-directives#ng-template
  * 
  * > 기능
- * [x] multi select => 최소, 최대
  * [ ] 드래그/드롭 직접 구현 - HTML5의 drag&drop
- * https://developer.mozilla.org/ko/docs/Web/API/HTML_%EB%93%9C%EB%9E%98%EA%B7%B8_%EC%95%A4_%EB%93%9C%EB%A1%AD_API
  */
 
-import { Component, OnInit, Input, Output, EventEmitter, HostListener } from '@angular/core';
+import { Component, AfterViewInit, Input, Output, EventEmitter, HostListener, ViewChild, TemplateRef } from '@angular/core';
 
 export class MenuItem {
   id: number;
@@ -31,12 +19,16 @@ export class MenuItem {
   ordinal = 0;
   visible: boolean;
   focused = false;
+  template: any;
+  emoji?: string;
 
 
   constructor(json) {
     this.id = json.id;
     this.name = json.name;
     this.visible = json.visible;
+    if(json.emoji !== undefined)
+      this.emoji = json.emoji;
   }
 
   static parse(json: any): MenuItem {
@@ -67,12 +59,14 @@ const reducer = (acc, curr) => {
   templateUrl: './dual-selector.component.html',
   styleUrls: ['./dual-selector.component.less'],
 })
-export class DualSelectorComponent implements OnInit {
-  timer;
-
+export class DualSelectorComponent implements AfterViewInit {
   @Input() data: MenuItem[];
   @Output() actionChange = new EventEmitter();
   @Output() reset = new EventEmitter();
+  @ViewChild("templateText") templateText: TemplateRef<any>;
+  @ViewChild("templateEmojiText") templateEmojiText: TemplateRef<any>;
+
+  timer;
 
   availableTitle: string="Available Options";
   selectedTitle: string="Selected Options";
@@ -119,6 +113,13 @@ export class DualSelectorComponent implements OnInit {
     [this.available, this.selected] = this._mapData(this.data);
     this._emitActionChangeEvent();
   }
+
+  ngAfterViewInit() {
+    this.available.map(item => item.template = this.templateEmojiText);
+    this.selected.map(item => item.template = this.templateEmojiText);
+    console.log(this.available, this.selected)
+  }
+
 
   ngOnChanges({ data: { currentValue } }): void {
     [this.available, this.selected] = this._mapData(currentValue);

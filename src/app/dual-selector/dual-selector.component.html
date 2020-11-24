@@ -135,9 +135,12 @@
           (click)="onSelect('available', item)"
           title={{item.name}}
         >
-          <span>
+          <ng-container 
+          *ngTemplateOutlet="item.template; context:{name: item.name, emoji: item.emoji};">
+          </ng-container>
+          <!-- <span>
             {{ item.name }}
-          </span>
+          </span> -->
         </li>
       </ul>
       <div 
@@ -208,15 +211,19 @@
             }} 없습니다
           </span>
         <li
-          *ngFor="let item of getSelected()"
+          *ngFor="let item of getSelected();"
           (click)="onSelect('selected', item)"
           [class.active]="item.focused"
           class="list__item list-group-item {{itemSize}}"
           title={{item.name}}
+
         >
-          <span>
+          <ng-container 
+            *ngTemplateOutlet="item.template; context:{name: item.name, emoji: item.emoji};">
+          </ng-container>
+          <!-- <span>
             {{ item.name }}
-          </span>
+          </span> -->
         </li>
       </ul>
       <div 
@@ -243,3 +250,13 @@
     </div>
   </div>
 </div>
+
+<ng-template #templateText let-name="name">
+	{{name}}
+</ng-template>
+
+<ng-template #templateEmojiText let-name="name" let-emoji="emoji">
+  <span>
+    {{emoji}} {{name}}
+  </span>
+</ng-template>
