@@ -104,7 +104,7 @@
     * 선택된 아이템 갯수 표시 -->
     
     <div 
-      class="container__available"
+      class="container__available container__options"
       [style.width.px]="maxWidth"
     >
       <input 
@@ -134,6 +134,7 @@
           [class.active]="item.focused"
           (click)="onSelect('available', item)"
           title={{item.name}}
+          draggable="true"
         >
           <ng-container 
           *ngTemplateOutlet="item.template; context:{name: item.name, emoji: item.emoji};">
@@ -188,7 +189,7 @@
       </button>
     </div>
     <div 
-      class="container__selected"
+      class="container__selected container__options"
       [style.width.px]="maxWidth"
       >
       <input 
@@ -216,7 +217,7 @@
           [class.active]="item.focused"
           class="list__item list-group-item {{itemSize}}"
           title={{item.name}}
-
+          draggable="true"
         >
           <ng-container 
             *ngTemplateOutlet="item.template; context:{name: item.name, emoji: item.emoji};">

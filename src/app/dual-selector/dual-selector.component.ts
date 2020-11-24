@@ -5,10 +5,9 @@
  * 
  * > 소메뉴
  * [ ] 하나씩만 옮기기 on/off => 커서가 옮겨가기
- * 레퍼런스 찾아보기 https://angular.kr/guide/structural-directives#ng-template
  * 
  * > 기능
- * [ ] 드래그/드롭 직접 구현 - HTML5의 drag&drop
+ * [◐] 드래그/드롭 직접 구현 - HTML5의 drag&drop
  */
 
 import { Component, AfterViewInit, Input, Output, EventEmitter, HostListener, ViewChild, TemplateRef } from '@angular/core';
@@ -47,6 +46,8 @@ enum ItemSize {
   s = 's',
   m = 'm'
 }
+
+
 
 
 const reducer = (acc, curr) => {
@@ -107,6 +108,8 @@ export class DualSelectorComponent implements AfterViewInit {
 
   isShiftKeyDown: boolean = false;
 
+  items: NodeListOf<Element>;
+
   constructor() {}
 
   ngOnInit(): void {
@@ -117,7 +120,9 @@ export class DualSelectorComponent implements AfterViewInit {
   ngAfterViewInit() {
     this.available.map(item => item.template = this.templateEmojiText);
     this.selected.map(item => item.template = this.templateEmojiText);
-    console.log(this.available, this.selected)
+   
+    
+    // this._initItemsDragEvents();
   }
 
 
@@ -145,6 +150,127 @@ export class DualSelectorComponent implements AfterViewInit {
   @HostListener('document:keyup.shift', ['$event']) 
   onShiftKeyupHandler(evt: KeyboardEvent) {
     this.isShiftKeyDown = false;
+  }
+
+  private _initItemsDragEvents () {
+    this.items = document.querySelectorAll('.container__list .list__item');
+    const that = this;
+    let dragSrcEl:any;
+    let currentState:string;
+
+    /**
+     * drag 시작 시 호출되는 함수 (1)
+     * @param {} e 드래그 하고 있는 item
+     */
+    function handleDragStart(e) {
+      this.style.opacity = '0.4';   
+      const parent = e.target.parentNode;
+
+      if(parent.classList.value.includes('available'))
+        currentState = 'available';
+
+      else
+        currentState = 'selected';
+
+      dragSrcEl = this;
+
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/html', this.innerHTML);
+
+    }
+
+    /**
+     * 다른 item 위에 들어가면, !단 한번만! 호출되는 함수
+     * @param {*} e 다른 item
+     */
+    function handleDragEnter(e) {
+      const parent = e.target.parentNode;
+      if(!parent.classList.value.includes(currentState))
+        return;
+
+      this.classList.add('over');
+    }
+
+    /**
+     * 다른 item 위에 드래그한 채로 올려두면 !계속! 호출되는 함수
+     * @param {*} e 다른 item
+     */
+    function handleDragOver(e) {
+      if (e.preventDefault) {
+        e.preventDefault();
+      }
+
+      const parent = e.target.parentNode;
+      if(!parent.classList.value.includes(currentState))
+        return;
+
+      e.dataTransfer.dropEffect = 'move';
+  
+      return false;
+    }
+    
+    /***
+     * drag 시작 시 호출되는 함수 (2)
+     * @param {} e 드래그 하고 있는 item
+     */
+    function handleDragLeave(e) {
+      this.classList.remove('over');
+    }
+
+    /**
+     * 다른 item에 떨어뜨리면 호출되는 함수
+     * @param {*} e 선택하고 있었던 item
+     */
+    function handleDrop(e) {
+
+      if (e.stopPropagation) {
+        e.stopPropagation(); // stops the browser from redirecting.
+      }
+      
+      const parent = this.parentNode;
+      if(!parent.classList.value.includes(currentState))
+      return;
+
+      if (dragSrcEl !== this) {
+
+        dragSrcEl.innerHTML = this.innerHTML;
+        this.innerHTML = e.dataTransfer.getData('text/html');
+        
+        // dragSrcEl과, e의 title 바꿔주기
+        const tempTitle = this.title;
+        this.title = dragSrcEl.title;
+        dragSrcEl.title = tempTitle;
+
+        
+        const dragSrcElText = dragSrcEl.querySelector('span').innerHTML;
+        const thisText = this.querySelector('span').innerHTML;
+        console.log(dragSrcElText, thisText);
+
+      }
+      
+      return false;
+    }
+
+    /**
+     * 뭐가 되었든, 드래그가 끝나면 호출되는 item
+     * @param {*} e 선택하고 있었던 item
+     */
+    function handleDragEnd(e) {
+      this.style.opacity = '1';
+
+      that.items.forEach((item) => {
+        item.classList.remove('over');
+      });
+    }
+
+    this.items.forEach(item => {
+      item.addEventListener('dragstart', handleDragStart, false);
+      item.addEventListener('dragenter', handleDragEnter, false);
+      item.addEventListener('dragover', handleDragOver, false);
+      item.addEventListener('dragleave', handleDragLeave, false);
+      item.addEventListener('drop', handleDrop, false);
+      item.addEventListener('dragend', handleDragEnd, false);
+    })
   }
 
   /**
@@ -240,10 +366,14 @@ export class DualSelectorComponent implements AfterViewInit {
   }
 
   private _emitActionChangeEvent(): void {
+    document.querySelectorAll('.container__list .list__item').forEach(item => {
+      item.classList.remove('active');
+    })
     this.actionChange.emit({
       selected: this.selected.reduce(reducer, []),
       available: this.available.reduce(reducer, []),
     });
+    this._initItemsDragEvents();
   }
 
   private _focusedInit(list: MenuItem[], v:boolean):void {
@@ -329,6 +459,7 @@ export class DualSelectorComponent implements AfterViewInit {
   }
 
   onSelect(state: string, item: MenuItem): void {
+    console.log('onSelect')
     const { id } = item;
 
     // if(this.optionStateActive.moveOne)
