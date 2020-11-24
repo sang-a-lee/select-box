@@ -120,9 +120,8 @@ export class DualSelectorComponent implements AfterViewInit {
   ngAfterViewInit() {
     this.available.map(item => item.template = this.templateEmojiText);
     this.selected.map(item => item.template = this.templateEmojiText);
-   
     
-    // this._initItemsDragEvents();
+    this._initItemsDragEvents();
   }
 
 
