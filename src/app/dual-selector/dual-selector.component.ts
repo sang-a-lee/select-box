@@ -7,7 +7,7 @@
  * [ ] 하나씩만 옮기기 on/off => 커서가 옮겨가기
  * 
  * > 기능
- * [◐] 드래그/드롭 직접 구현 - HTML5의 drag&drop
+ * [x] 드래그/드롭 직접 구현 - HTML5의 drag&drop
  * [ ] debounce timer -> rxjs
  */
 
@@ -239,46 +239,30 @@ export class DualSelectorComponent implements AfterViewInit {
 
 
     if (this.dragSourceElement !== this) {
-      const sourceElementChildNodes = [...this.dragSourceElement.childNodes];
-      const otherElementChildNodes = [...otherElement.childNodes];
-
-
-      // source의 자식들 모두 지우기
-      otherElement.innerHTML = '';
-      for(let n of sourceElementChildNodes) {
-        console.log('source',n);
-        otherElement.appendChild(n);
-      }
-
-      this.dragSourceElement.innerHTML = '';
-      for(let n of otherElementChildNodes) {
-        console.log('other',n);
-        this.dragSourceElement.appendChild(n);
-      }
-
-      // title swap
-      [this.dragSourceElement.title, otherElement.title] = [otherElement.title, this.dragSourceElement.title]
+      let sourceOrdinal, otherOrdinal;
 
       switch(MenuState[state]) {
         case 0:
           // Available
-          const sourceOrdinal = this.dragSourceItem.ordinal;
-          const otherOrdinal = otherItem.ordinal;
+          sourceOrdinal = this.dragSourceItem.ordinal;
+          otherOrdinal = otherItem.ordinal;
 
           [this.available[sourceOrdinal].ordinal, this.available[otherOrdinal].ordinal] =
           [this.available[otherOrdinal].ordinal, this.available[sourceOrdinal].ordinal]
 
-          // this.available.sort((itemA, itemB) => itemA.ordinal-itemB.ordinal);
-
-          console.log(this.available);
-          // this._emitActionChangeEvent();
           break;
 
         case 1:
           // Selected
+          sourceOrdinal = this.dragSourceItem.ordinal;
+          otherOrdinal = otherItem.ordinal;
+
+          [this.selected[sourceOrdinal].ordinal, this.selected[otherOrdinal].ordinal] =
+          [this.selected[otherOrdinal].ordinal, this.selected[sourceOrdinal].ordinal]
+
           break;
       }
-      
+  
 
     } 
       
@@ -308,6 +292,8 @@ export class DualSelectorComponent implements AfterViewInit {
         );
         break;
     }
+
+    this._emitActionChangeEvent();
     this.dragSourceElement.style.opacity = '1';
     this.dragSourceElement.classList.remove('over');
   }
@@ -409,11 +395,10 @@ export class DualSelectorComponent implements AfterViewInit {
   private _emitActionChangeEvent(): void {
   
     this.actionChange.emit({
-      selected: this.selected.reduce(reducer, []).sort((itemA, itemB) => itemA.ordinal-itemB.ordinal),
-      available: this.available.reduce(reducer, []).sort((itemA, itemB) => itemA.ordinal-itemB.ordinal),
+      selected: this.selected.reduce(reducer, []),
+      available: this.available.reduce(reducer, [])
     });
 
-    // this._initItemsDragEvents();
   }
 
   private _focusedInit(list: MenuItem[], v:boolean):void {
@@ -432,17 +417,22 @@ export class DualSelectorComponent implements AfterViewInit {
       if(item.name.includes(this.availableSearchKeyword))
         ret.push(item)
     })
-    
+
     return ret;
   }
 
 
   getSelected() {
     const ret = [];
-    this.selected.forEach(item => {
+
+    this.selected
+    .sort((itemA, itemB) => itemA.ordinal - itemB.ordinal)
+    .forEach(item => {
       if(item.name.includes(this.selectedSearchKeyword))
         ret.push(item)
     })
+
+
 
     return ret;
   }
