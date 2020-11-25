@@ -1,13 +1,14 @@
 /**
  * TODO
  * > 템플릿
- * [x] ng-template 을 사용하여, 원하는 값이 표시될 수 있도록 템플릿 만들어두기
+ * [ ] dual (X) | app -> dual (O)
  * 
  * > 소메뉴
  * [ ] 하나씩만 옮기기 on/off => 커서가 옮겨가기
  * 
  * > 기능
  * [◐] 드래그/드롭 직접 구현 - HTML5의 drag&drop
+ * [ ] debounce timer -> rxjs
  */
 
 import { Component, AfterViewInit, Input, Output, EventEmitter, HostListener, ViewChild, TemplateRef } from '@angular/core';
@@ -35,6 +36,11 @@ export class MenuItem {
   }
 }
 
+/**
+ * available: 0,
+ * selected: 1,
+ * none: 2
+ */
 enum MenuState {
   available,
   selected,
@@ -49,8 +55,7 @@ enum ItemSize {
 
 
 
-
-const reducer = (acc, curr) => {
+const reducer = (acc:any[], curr:MenuItem) => {
   acc.push(curr.id);
   return acc;
 };
@@ -67,7 +72,7 @@ export class DualSelectorComponent implements AfterViewInit {
   @ViewChild("templateText") templateText: TemplateRef<any>;
   @ViewChild("templateEmojiText") templateEmojiText: TemplateRef<any>;
 
-  timer;
+  timer:number;
 
   availableTitle: string="Available Options";
   selectedTitle: string="Selected Options";
@@ -108,26 +113,36 @@ export class DualSelectorComponent implements AfterViewInit {
 
   isShiftKeyDown: boolean = false;
 
-  items: NodeListOf<Element>;
+  dragSourceElement:any;
+  dragSourceItem:MenuItem;
+  dragState:MenuState;
+
+  // items: NodeListOf<Element>;
 
   constructor() {}
 
   ngOnInit(): void {
     [this.available, this.selected] = this._mapData(this.data);
     this._emitActionChangeEvent();
+    
   }
 
   ngAfterViewInit() {
     this.available.map(item => item.template = this.templateEmojiText);
     this.selected.map(item => item.template = this.templateEmojiText);
     
-    this._initItemsDragEvents();
+    // this._initItemsDragEvents();
   }
 
 
   ngOnChanges({ data: { currentValue } }): void {
     [this.available, this.selected] = this._mapData(currentValue);
     this._emitActionChangeEvent();
+  }
+
+  ngAfterViewChecked() {
+    // this.items = document.querySelectorAll('.container__list .list__item')
+    // this._initItemsDragEvents()
   }
 
   // esc key
@@ -151,126 +166,153 @@ export class DualSelectorComponent implements AfterViewInit {
     this.isShiftKeyDown = false;
   }
 
-  private _initItemsDragEvents () {
-    this.items = document.querySelectorAll('.container__list .list__item');
-    const that = this;
-    let dragSrcEl:any;
-    let currentState:string;
+  /**
+   * drag 시작 시 호출되는 함수
+   * @param event 드래그 하고 있는 item
+   * @param item 
+   * @param state 
+   */
+  onDragStart(event:DragEvent, item:MenuItem, state:string) {
+    this.dragSourceElement = event.target;
+    this.dragSourceItem = item;
+    this.dragState = MenuState[state];
 
-    /**
-     * drag 시작 시 호출되는 함수 (1)
-     * @param {} e 드래그 하고 있는 item
-     */
-    function handleDragStart(e) {
-      this.style.opacity = '0.4';   
-      const parent = e.target.parentNode;
+    this.dragSourceElement.style.opacity = '0.4';
 
-      if(parent.classList.value.includes('available'))
-        currentState = 'available';
-
-      else
-        currentState = 'selected';
-
-      dragSrcEl = this;
-
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/html', this.innerHTML);
-
-    }
-
-    /**
-     * 다른 item 위에 들어가면, !단 한번만! 호출되는 함수
-     * @param {*} e 다른 item
-     */
-    function handleDragEnter(e) {
-      const parent = e.target.parentNode;
-      if(!parent.classList.value.includes(currentState))
-        return;
-
-      this.classList.add('over');
-    }
-
-    /**
-     * 다른 item 위에 드래그한 채로 올려두면 !계속! 호출되는 함수
-     * @param {*} e 다른 item
-     */
-    function handleDragOver(e) {
-      if (e.preventDefault) {
-        e.preventDefault();
-      }
-
-      const parent = e.target.parentNode;
-      if(!parent.classList.value.includes(currentState))
-        return;
-
-      e.dataTransfer.dropEffect = 'move';
-  
-      return false;
-    }
-    
-    /***
-     * drag 시작 시 호출되는 함수 (2)
-     * @param {} e 드래그 하고 있는 item
-     */
-    function handleDragLeave(e) {
-      this.classList.remove('over');
-    }
-
-    /**
-     * 다른 item에 떨어뜨리면 호출되는 함수
-     * @param {*} e 선택하고 있었던 item
-     */
-    function handleDrop(e) {
-
-      if (e.stopPropagation) {
-        e.stopPropagation(); // stops the browser from redirecting.
-      }
-      
-      const parent = this.parentNode;
-      if(!parent.classList.value.includes(currentState))
-      return;
-
-      if (dragSrcEl !== this) {
-
-        dragSrcEl.innerHTML = this.innerHTML;
-        this.innerHTML = e.dataTransfer.getData('text/html');
-        
-        // dragSrcEl과, e의 title 바꿔주기
-        const tempTitle = this.title;
-        this.title = dragSrcEl.title;
-        dragSrcEl.title = tempTitle;
-
-        
-        const dragSrcElText = dragSrcEl.querySelector('span').innerHTML;
-        const thisText = this.querySelector('span').innerHTML;
-        console.log(dragSrcElText, thisText);
-
-      }
-      
-      return false;
-    }
-
-    /**
-     * 뭐가 되었든, 드래그가 끝나면 호출되는 item
-     * @param {*} e 선택하고 있었던 item
-     */
-    function handleDragEnd(e) {
-      this.style.opacity = '1';
-
-      that.items.forEach((item) => {
-        item.classList.remove('over');
-      });
-    }
-
-    this.items.forEach(item => {
-      item.addEventListener('dragstart', handleDragStart, false);
-      item.addEventListener('dragenter', handleDragEnter, false);
-      item.addEventListener('dragover', handleDragOver, false);
-      item.addEventListener('dragleave', handleDragLeave, false);
-      item.addEventListener('drop', handleDrop, false);
-      item.addEventListener('dragend', handleDragEnd, false);
-    })
+    event.dataTransfer.effectAllowed = 'move';
   }
+  
+  /**
+   * drag 가능 아이템에 마우스를 대고있으면 계속 호출되는 함수
+   * @param event 다른 item
+   */
+  onDragOver(event:DragEvent, item:MenuItem, state:string) {
+    if(this.dragState !== MenuState[state]) return false;
+
+    if (event.preventDefault) {
+      event.preventDefault();
+    }
+
+    event.dataTransfer.dropEffect = 'move';
+
+    return false;
+  }
+  
+  /**
+   * 다른 item 위에 들어가면, !단 한번만! 호출되는 함수
+   * @param event 다른 item
+   */
+  onDragEnter(event:DragEvent, item:MenuItem, state:string) {
+    if(this.dragState !== MenuState[state]) return false;
+
+    const otherNode = <HTMLElement>event.target;
+    otherNode.classList.add('over');
+  }
+  
+  
+  /**
+   * drag 포커스가 떠날 때 한 번 호출되는 함수
+   * @param event 다른 item
+   */
+  onDragLeave(event:DragEvent, item:MenuItem, state:string) {
+    if(this.dragState !== MenuState[state]) return false;
+
+    const otherNode = <HTMLElement>event.target;
+    otherNode.classList.remove('over');
+
+  }
+
+  /**
+   * 다른 item에 떨어뜨리면 호출되는 함수
+   * @param event 다른 item
+   */
+  onDrop(event:DragEvent, otherItem:MenuItem, state:string) {
+    const otherElement = <HTMLElement>event.target;
+
+    if(this.dragState !== MenuState[state]) return false;
+    if(!otherElement.classList.contains('list__item')) return false;
+    
+
+    if (event.stopPropagation) {
+      event.stopPropagation(); // stops the browser from redirecting.
+    }
+
+
+    if (this.dragSourceElement !== this) {
+      const sourceElementChildNodes = [...this.dragSourceElement.childNodes];
+      const otherElementChildNodes = [...otherElement.childNodes];
+
+
+      // source의 자식들 모두 지우기
+      otherElement.innerHTML = '';
+      for(let n of sourceElementChildNodes) {
+        console.log('source',n);
+        otherElement.appendChild(n);
+      }
+
+      this.dragSourceElement.innerHTML = '';
+      for(let n of otherElementChildNodes) {
+        console.log('other',n);
+        this.dragSourceElement.appendChild(n);
+      }
+
+      // title swap
+      [this.dragSourceElement.title, otherElement.title] = [otherElement.title, this.dragSourceElement.title]
+
+      switch(MenuState[state]) {
+        case 0:
+          // Available
+          const sourceOrdinal = this.dragSourceItem.ordinal;
+          const otherOrdinal = otherItem.ordinal;
+
+          [this.available[sourceOrdinal].ordinal, this.available[otherOrdinal].ordinal] =
+          [this.available[otherOrdinal].ordinal, this.available[sourceOrdinal].ordinal]
+
+          // this.available.sort((itemA, itemB) => itemA.ordinal-itemB.ordinal);
+
+          console.log(this.available);
+          // this._emitActionChangeEvent();
+          break;
+
+        case 1:
+          // Selected
+          break;
+      }
+      
+
+    } 
+      
+    return false;
+
+  }
+  
+  /**
+   * 뭐가 되었든, 드래그가 끝나면 호출되는 item
+   * @param event 현재 item
+   */
+  onDragEnd(event:DragEvent, item:MenuItem, state:string) {
+    if(this.dragState !== MenuState[state]) return false;
+
+    switch(MenuState[state]) {
+      case 0:
+        document.querySelectorAll('.available__list .list__item')
+        .forEach(item => 
+          item.classList.remove('over')
+        );
+        break;
+
+      case 1:
+        document.querySelectorAll('.selected__list .list__item')
+        .forEach(item =>
+          item.classList.remove('over')
+        );
+        break;
+    }
+    this.dragSourceElement.style.opacity = '1';
+    this.dragSourceElement.classList.remove('over');
+  }
+
+
 
   /**
    * id가 없으면 focused에 넣고, 있으면 focused에서 빼기
@@ -365,14 +407,13 @@ export class DualSelectorComponent implements AfterViewInit {
   }
 
   private _emitActionChangeEvent(): void {
-    document.querySelectorAll('.container__list .list__item').forEach(item => {
-      item.classList.remove('active');
-    })
+  
     this.actionChange.emit({
-      selected: this.selected.reduce(reducer, []),
-      available: this.available.reduce(reducer, []),
+      selected: this.selected.reduce(reducer, []).sort((itemA, itemB) => itemA.ordinal-itemB.ordinal),
+      available: this.available.reduce(reducer, []).sort((itemA, itemB) => itemA.ordinal-itemB.ordinal),
     });
-    this._initItemsDragEvents();
+
+    // this._initItemsDragEvents();
   }
 
   private _focusedInit(list: MenuItem[], v:boolean):void {
@@ -380,6 +421,21 @@ export class DualSelectorComponent implements AfterViewInit {
       list[i].focused = v;
     }
   }
+  
+
+  getAvailable() {
+    const ret = [];
+
+    this.available
+    .sort((itemA, itemB) => itemA.ordinal - itemB.ordinal)
+    .forEach(item => {
+      if(item.name.includes(this.availableSearchKeyword))
+        ret.push(item)
+    })
+    
+    return ret;
+  }
+
 
   getSelected() {
     const ret = [];
@@ -387,17 +443,10 @@ export class DualSelectorComponent implements AfterViewInit {
       if(item.name.includes(this.selectedSearchKeyword))
         ret.push(item)
     })
+
     return ret;
   }
 
-  getAvailable() {
-    const ret = [];
-    this.available.forEach(item => {
-      if(item.name.includes(this.availableSearchKeyword))
-        ret.push(item)
-    })
-    return ret;
-  }
 
   onChangeAvailableTitle(newTitle:string) {
     this.availableTitle = newTitle;
@@ -429,36 +478,36 @@ export class DualSelectorComponent implements AfterViewInit {
   }
 
   onSearchMaxWidthChange(newMaxWidth:number) {
-
+    // angular의 form을 동적으로 만들 수 있는
+    // reactive form
     clearTimeout(this.timer);
-    this.timer = setTimeout(()=>{
+    this.timer = window.setTimeout(()=>{
       this.maxWidth = newMaxWidth
     }, 100)
   }
 
   onSearchMaxHeightChange(newMaxHeight: number) {
     clearTimeout(this.timer);
-    this.timer = setTimeout(()=>{
+    this.timer = window.setTimeout(()=>{
       this.maxHeight = newMaxHeight
     }, 100)
   }
 
   onSearchAvailableChange(keyword) {
     clearTimeout(this.timer);
-    this.timer = setTimeout(()=>{
+    this.timer = window.setTimeout(()=>{
       this.availableSearchKeyword = keyword;
     }, 100)
   }
 
   onSearchSelectedChange(keyword) {
     clearTimeout(this.timer);
-    this.timer = setTimeout(()=>{
+    this.timer = window.setTimeout(()=>{
       this.selectedSearchKeyword = keyword;
     },100)
   }
 
   onSelect(state: string, item: MenuItem): void {
-    console.log('onSelect')
     const { id } = item;
 
     // if(this.optionStateActive.moveOne)
@@ -793,3 +842,4 @@ export class DualSelectorComponent implements AfterViewInit {
     return [available.items, selected.items];
   }
 }
+

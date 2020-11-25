@@ -1,6 +1,6 @@
 <div class="container">
   <div class="container__inner">
-
+  <!-- SETTING MENU -->
     <div class="setting">
       <button class="setting__button setting__icon btn btn-default" (click)="onSettingMenuClick()">
         <i class="fa fa-cog" aria-hidden="true"></i>
@@ -97,12 +97,7 @@
     </ul>
       
     </div>
-    <!-- * 타이틀 보이기 on/off - Available, Selected Options, 및 이름 변경
-    * search on/off
-    * 하나씩만 옮기기 on/off
-    * 아이템 크기 크게/작게 , width도 조정 가능하게
-    * 선택된 아이템 갯수 표시 -->
-    
+    <!-- AVAILABLE OPTIONS -->
     <div 
       class="container__available container__options"
       [style.width.px]="maxWidth"
@@ -135,9 +130,15 @@
           (click)="onSelect('available', item)"
           title={{item.name}}
           draggable="true"
+          (dragstart)="onDragStart($event, item, 'available')"
+          (dragover)="onDragOver($event, item, 'available')"
+          (dragenter)="onDragEnter($event, item, 'available')"
+          (dragleave)="onDragLeave($event, item, 'available')"
+          (drop)="onDrop($event, item, 'available')"
+          (dragend)="onDragEnd($event, item, 'available')"
         >
           <ng-container 
-          *ngTemplateOutlet="item.template; context:{name: item.name, emoji: item.emoji};">
+            *ngTemplateOutlet="item.template; context:{name: item.name, emoji: item.emoji};">
           </ng-container>
           <!-- <span>
             {{ item.name }}
@@ -188,6 +189,7 @@
         <i class="fa fa-angle-left" aria-hidden="true"></i>
       </button>
     </div>
+    <!-- SELECTED OPTIONS -->
     <div 
       class="container__selected container__options"
       [style.width.px]="maxWidth"
@@ -218,6 +220,12 @@
           class="list__item list-group-item {{itemSize}}"
           title={{item.name}}
           draggable="true"
+          (dragstart)="onDragStart($event, item, 'selected')"
+          (dragover)="onDragOver($event, item, 'selected')"
+          (dragenter)="onDragEnter($event, item, 'selected')"
+          (dragleave)="onDragLeave($event, item, 'selected')"
+          (drop)="onDrop($event, item, 'selected')"
+          (dragend)="onDragEnd($event, item, 'selected')"
         >
           <ng-container 
             *ngTemplateOutlet="item.template; context:{name: item.name, emoji: item.emoji};">
