@@ -129,19 +129,12 @@ export class DualSelectorComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     this._initTemplate();
-    // this.available.map(item => item.template = this.templateEmojiText);
-    // this.selected.map(item => item.template = this.templateEmojiText);
   }
 
 
   ngOnChanges({ data: { currentValue } }): void {
     [this.available, this.selected] = this._mapData(currentValue);
     this._emitActionChangeEvent();
-  }
-
-  ngAfterViewChecked() {
-    // this.items = document.querySelectorAll('.container__list .list__item')
-    // this._initItemsDragEvents()
   }
 
   // esc key

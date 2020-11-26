@@ -140,9 +140,6 @@
           <ng-container 
             *ngTemplateOutlet="item.template; context:{name: item.name, emoji: item.emoji};">
           </ng-container>
-          <!-- <span>
-            {{ item.name }}
-          </span> -->
         </li>
       </ul>
       <div 
@@ -230,9 +227,6 @@
           <ng-container 
             *ngTemplateOutlet="item.template; context:{name: item.name, emoji: item.emoji};">
           </ng-container>
-          <!-- <span>
-            {{ item.name }}
-          </span> -->
         </li>
       </ul>
       <div 
@@ -240,22 +234,6 @@
         class="list__count">
         {{selectedFocusedCount}} / {{selected.length}}
       </div>
-      <!-- <div class="selected__move">
-        <button
-          [disabled]="!actionStateActive.up"
-          class="btn btn-default"
-          (click)="toUp()"
-        >
-          <fa-icon [icon]="faAngleUp"></fa-icon>
-        </button>
-        <button
-          [disabled]="!actionStateActive.down"
-          class="btn btn-default"
-          (click)="toDown()"
-        >
-          <fa-icon [icon]="faAngleDown"></fa-icon>
-        </button>
-      </div> -->
     </div>
   </div>
 </div>
