@@ -8,7 +8,7 @@
  * 
  * > 기능
  * [x] 드래그/드롭 직접 구현 - HTML5의 drag&drop
- * [ ] debounce timer -> rxjs
+ * [x] debounce timer -> rxjs
  */
 
 import { Component, AfterViewInit, Input, Output, EventEmitter, HostListener, TemplateRef } from '@angular/core';
@@ -167,9 +167,15 @@ export class DualSelectorComponent implements AfterViewInit {
           distinctUntilChanged()
         )
         .subscribe(data => {
-          this.controls[key].keyword = this.controls[key].keyword && data;
-          this.controls[key].width = this.controls[key].width && data;
-          this.controls[key].height = this.controls[key].height && data;
+          if(this.controls[key].keyword !== undefined)
+            this.controls[key].keyword = data;
+
+          if(this.controls[key].width !== undefined)
+            this.controls[key].width = data;
+
+          if(this.controls[key].height !== undefined)
+            this.controls[key].height = data;
+
         })
 
     })
@@ -512,20 +518,7 @@ export class DualSelectorComponent implements AfterViewInit {
   onSelect(state: string, item: MenuItem): void {
     const { id } = item;
 
-    // if(this.optionStateActive.moveOne)
-    // this.optionStateActive.moveOne === true
-    // this.optionStateActive.moveOne === false
-    /**
-     * 만약 [한 개만 움직이기] 상태일 경우, this.focused 길이가 0일때만 아래 가능
-     * 만약 [한 개만 움직이기]
-     */
-
-     if(
-       (this.optionStateActive.moveOne && this.focused.length === 0) ||
-       (!this.optionStateActive.moveOne) ||
-       (this.focused[0] === id)
-     ) {
-
+    if(!this.optionStateActive.moveOne) {
       this._toggleIdFocused(id, MenuState[state]);
 
       switch(state) {
@@ -691,8 +684,41 @@ export class DualSelectorComponent implements AfterViewInit {
             }
           }
         }
-      } else {
       }
+      
+
+    } else {
+      // moveOne ON(하나만 선택 ON)
+      console.log("moveOne")
+      this.focused = [];
+      switch(MenuState[state]) {
+        case 0:
+          this.availableFocusedCount = 0;
+          this.selectedFocusedCount = 0;
+          this._clearFocused(this.available);
+          this._clearFocused(this.selected);
+          this._toggleFocus(this.available, id);
+          this.actionStateActive = {
+            ...this.actionStateActive,
+            toAvailable: false,
+            toSelected: true,
+          };
+          break;
+
+        case 1:
+          this.availableFocusedCount = 0;
+          this.selectedFocusedCount = 0;
+          this._clearFocused(this.available);
+          this._clearFocused(this.selected);
+          this._toggleFocus(this.selected, id);
+          this.actionStateActive = {
+            ...this.actionStateActive,
+            toAvailable: true,
+            toSelected: false,
+          };
+          break;
+      }
+      this._toggleIdFocused(id, MenuState[state]);
 
     }
 
