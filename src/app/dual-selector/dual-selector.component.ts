@@ -132,8 +132,6 @@ export class DualSelectorComponent implements AfterViewInit {
     reset: true,
     toSelected: false,
     toAvailable: false,
-    up: false,
-    down: false,
   };
 
   optionStateActive = {
@@ -415,8 +413,6 @@ export class DualSelectorComponent implements AfterViewInit {
       reset: true,
       toSelected: false,
       toAvailable: false,
-      up: false,
-      down: false,
     };
   }
 
@@ -608,7 +604,6 @@ export class DualSelectorComponent implements AfterViewInit {
       }
 
 
-
       this._setMenuState(MenuState[state]);
 
       if (this.focused.length === 0) { // 선택된 것이 없는 경우
@@ -640,56 +635,10 @@ export class DualSelectorComponent implements AfterViewInit {
             break;
         }
       }
-
-      if (state === 'selected') {
-        if (this.focused.length === 0 || this.focused.length > 1) {
-          this.actionStateActive = {
-            ...this.actionStateActive,
-            up: false,
-            down: false,
-          };
-        } else {
-          // selected 에서
-          // 한개만 클릭된 경우
-
-          const { ordinal } = this.selected.filter(
-            item => item.id === this.focused[0]
-          )[0];
-
-          if (this.selected.length === 1) {
-            this.actionStateActive = {
-              ...this.actionStateActive,
-              up: false,
-              down: false,
-            };
-          } else {
-            if (ordinal === 0) {
-              this.actionStateActive = {
-                ...this.actionStateActive,
-                up: false,
-                down: true,
-              };
-            } else if (ordinal === this.selected.length - 1) {
-              this.actionStateActive = {
-                ...this.actionStateActive,
-                up: true,
-                down: false,
-              };
-            } else {
-              this.actionStateActive = {
-                ...this.actionStateActive,
-                up: true,
-                down: true,
-              };
-            }
-          }
-        }
-      }
       
 
     } else {
       // moveOne ON(하나만 선택 ON)
-      console.log("moveOne")
       this.focused = [];
       switch(MenuState[state]) {
         case 0:
