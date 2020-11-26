@@ -2,7 +2,6 @@
   box-sizing: border-box;
 }
 
-
 .container {
   .container__inner {
     position: relative;
@@ -32,12 +31,16 @@
         .list__item {
           display: flex;
           align-items: center;
-          justify-content: center;
-          padding: 0.8rem 0;
+          justify-content: space-between;
+          padding: 1rem;
           width: 100%;
           font-size: 1.1rem;
           border-bottom: solid 0.01rem rgba(gray, 0.3);
           cursor: pointer;
+
+          .item__status {
+            display: block;
+          }
 
           input {
             height: 2.5rem;

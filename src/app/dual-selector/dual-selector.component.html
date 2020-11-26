@@ -11,10 +11,16 @@
         <li 
           class="list__item"
           (click)="onTitleClick()"
-          >타이틀
+          >
+          타이틀
+
+          <span
+            class="item__status"
+            >
             {{
-              optionStateActive.title ? "OFF":"ON"
+              optionStateActive.title ? "🟢":"🔴"
             }}
+          </span>
         </li>
         <li
           *ngIf="optionStateActive.title"
@@ -36,28 +42,40 @@
           </div>
         </li>
         <li 
-          class="list__item"염
+          class="list__item"
           (click)="onSearchClick()"
           >검색
-          {{
-            optionStateActive.search ? "OFF":"ON"
-          }}
+          <span
+            class="item__status"
+          >
+            {{
+              optionStateActive.search ? "🟢":"🔴"
+            }}
+          </span>
         </li>
         <li 
           class="list__item"
           (click)="onMoveOnClick()"
           >하나씩만 옮기기
-          {{
-            optionStateActive.moveOne ? "OFF":"ON"
-          }}
+          <span
+            class="item__status"
+          >
+            {{
+              optionStateActive.moveOne ? "🟢":"🔴"
+            }}
+          </span>
         </li>
         <li 
           class="list__item"
           (click)="onSelectedItemsCountClick()"
           >선택된 아이템 갯수 표시
-          {{
-            optionStateActive.showSelectedItemsCount ? "OFF":"ON"
-          }}
+          <span
+            class="item__status"  
+          >
+            {{
+              optionStateActive.showSelectedItemsCount ? "🟢":"🔴"
+            }}
+          </span>
         </li>
         <li
           class="list__item"
