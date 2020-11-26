@@ -24,14 +24,14 @@
             <input type="text" 
               class="form-control" 
               type="text" 
-              placeholder="{{availableTitle}}"
-              (change)="onChangeAvailableTitle($event.target.value)"
+              placeholder="{{controls.newAvailableTitle.keyword}}"
+              [formControl]="controls.newAvailableTitle.control"
               />
             <input type="text" 
             class="form-control" 
             type="text" 
-            placeholder="{{selectedTitle}}" 
-            (change)="onChangeSelectedTitle($event.target.value)"
+            placeholder="{{controls.newSelectedTitle.keyword}}" 
+            [formControl]="controls.newSelectedTitle.control"
             />
           </div>
         </li>
@@ -84,14 +84,19 @@
       
         <li class="list__item">
           <div>
-            <input type="text" class="form-control" type="text" placeholder="가로 (현재: {{maxWidth}} px)"
-              (input)="onSearchMaxWidthChange($event.target.value)"
-            >
-            <input type="text" class="form-control" type="text" placeholder="세로 (현재: {{maxHeight}} px)"
-              (input)="onSearchMaxHeightChange($event.target.value)"
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="가로 (현재: {{controls.newWidth.width}} px)"
+              [formControl]="controls.newWidth.control"
             >
 
-
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="세로 (현재: {{controls.newHeight.height}} px)"
+              [formControl]="controls.newHeight.control"
+            >
           </div>
         </li>
     </ul>
@@ -100,22 +105,24 @@
     <!-- AVAILABLE OPTIONS -->
     <div 
       class="container__available container__options"
-      [style.width.px]="maxWidth"
+      [style.width.px]="controls.newWidth.width"
     >
       <input 
-        *ngIf="optionStateActive.search"
-        class="container__search form-control" 
-        type="text" 
-        placeholder="search" 
-        (input)="onSearchAvailableChange($event.target.value)">
+      *ngIf="optionStateActive.search"
+      class="container__search form-control" 
+      type="text" 
+      placeholder="search"
+      [formControl]="controls.availableSearch.control"
+      >
+      
       <ul 
         class="container__list available__list list-group"
-        [style.height.px]="maxHeight"
+        [style.height.px]="controls.newHeight.height"
         >
         <li 
           *ngIf="optionStateActive.title"
           class="list__title list-group-item">
-          {{availableTitle}}</li>
+          {{controls.newAvailableTitle.keyword}}</li>
         <span class="list__empty-text" 
               *ngIf="available.length === 0 || getAvailable().length === 0"
           >
@@ -189,20 +196,23 @@
     <!-- SELECTED OPTIONS -->
     <div 
       class="container__selected container__options"
-      [style.width.px]="maxWidth"
+      [style.width.px]="controls.newWidth.width"
       >
       <input 
         *ngIf="optionStateActive.search"
         class="container__search form-control" 
         type="text" placeholder="search" 
-        (input)="onSearchSelectedChange($event.target.value)">
+        [formControl]="controls.selectedSearch.control"
+        >
       <ul 
         class="container__list selected__list list-group"
-        [style.height.px]="maxHeight"
+        [style.height.px]="controls.newHeight.height"
         >
         <li
           *ngIf="optionStateActive.title"
-          class="list__title list-group-item">{{selectedTitle}}</li>
+          class="list__title list-group-item">
+            {{controls.newSelectedTitle.keyword}}
+          </li>
           <span class="list__empty-text" 
           *ngIf="selected.length === 0 || getSelected().length === 0"
           >

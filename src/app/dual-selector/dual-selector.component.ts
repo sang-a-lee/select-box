@@ -1,7 +1,7 @@
 /**
  * TODO
  * > 템플릿
- * [ ] dual (X) | app -> dual (O)
+ * [x] dual (X) | app -> dual (O)
  * 
  * > 소메뉴
  * [ ] 하나씩만 옮기기 on/off => 커서가 옮겨가기
@@ -11,7 +11,9 @@
  * [ ] debounce timer -> rxjs
  */
 
-import { Component, AfterViewInit, Input, Output, EventEmitter, HostListener, ViewChild, TemplateRef } from '@angular/core';
+import { Component, AfterViewInit, Input, Output, EventEmitter, HostListener, TemplateRef } from '@angular/core';
+import { FormControl } from "@angular/forms";
+import { debounceTime, distinctUntilChanged } from "rxjs/operators";
 
 export class MenuItem {
   id: number;
@@ -53,12 +55,17 @@ enum ItemSize {
   m = 'm'
 }
 
+interface KeywordControl {
+  keyword: '',
+  control: FormControl,
+}
 
 
 const reducer = (acc:any[], curr:MenuItem) => {
   acc.push(curr.id);
   return acc;
 };
+
 
 @Component({
   selector: 'app-dual-selector',
@@ -67,17 +74,46 @@ const reducer = (acc:any[], curr:MenuItem) => {
 })
 export class DualSelectorComponent implements AfterViewInit {
   @Input() data: MenuItem[];
-  @Output() actionChange = new EventEmitter();
-  @Output() reset = new EventEmitter();
+
+  // app 에서 넘겨주는 template
   @Input() templateText: TemplateRef<any>;
   @Input() templateEmojiText: TemplateRef<any>;
-  // @ViewChild("templateText") templateText: TemplateRef<any>;
-  // @ViewChild("templateEmojiText") templateEmojiText: TemplateRef<any>;
+  
+  @Output() actionChange = new EventEmitter();
+  @Output() reset = new EventEmitter();
+
+  
+  controls = {
+    // available, selected 검색하는 input 창에서 사용
+    availableSearch: {
+      keyword: '',
+      control: new FormControl()
+    },
+    selectedSearch: {
+      keyword: '',
+      control: new FormControl()
+    },
+    // available, selected 제목 수정하는 input 창에서 사용
+    newAvailableTitle: {
+      keyword: 'available options',
+      control: new FormControl()
+    },
+    newSelectedTitle: {
+      keyword: 'selected options',
+      control: new FormControl()
+    },
+    // 세로 길이, 가로 길이 수정하는 input 창에서 사용
+    newHeight: {
+      height: 300,
+      control: new FormControl()
+    },
+    newWidth: {
+      width: 171,
+      control: new FormControl()
+    },
+  }
 
   timer:number;
-
-  availableTitle: string="Available Options";
-  selectedTitle: string="Selected Options";
 
   available: MenuItem[] = [];
   availableSearchKeyword:string = '';
@@ -119,13 +155,31 @@ export class DualSelectorComponent implements AfterViewInit {
   dragSourceItem:MenuItem;
   dragState:MenuState;
 
-  // items: NodeListOf<Element>;
 
   constructor() {}
+
+  private _initControl() {
+    Object.keys(this.controls).forEach(key => {
+      // debounce 
+      this.controls[key].control.valueChanges
+        .pipe(
+          debounceTime(300),
+          distinctUntilChanged()
+        )
+        .subscribe(data => {
+          this.controls[key].keyword = this.controls[key].keyword && data;
+          this.controls[key].width = this.controls[key].width && data;
+          this.controls[key].height = this.controls[key].height && data;
+        })
+
+    })
+  }
 
   ngOnInit(): void {
     [this.available, this.selected] = this._mapData(this.data);
     this._emitActionChangeEvent();
+
+    this._initControl();
     
   }
 
@@ -409,7 +463,7 @@ export class DualSelectorComponent implements AfterViewInit {
     this.available
     .sort((itemA, itemB) => itemA.ordinal - itemB.ordinal)
     .forEach(item => {
-      if(item.name.includes(this.availableSearchKeyword))
+      if(item.name.includes(this.controls.availableSearch.keyword))
         ret.push(item)
     })
 
@@ -419,27 +473,19 @@ export class DualSelectorComponent implements AfterViewInit {
 
   getSelected() {
     const ret = [];
+    
 
     this.selected
     .sort((itemA, itemB) => itemA.ordinal - itemB.ordinal)
     .forEach(item => {
-      if(item.name.includes(this.selectedSearchKeyword))
+      if(item.name.includes(this.controls.selectedSearch.keyword))
         ret.push(item)
     })
-
 
 
     return ret;
   }
 
-
-  onChangeAvailableTitle(newTitle:string) {
-    this.availableTitle = newTitle;
-  }
-
-  onChangeSelectedTitle(newTitle:string) {
-    this.selectedTitle = newTitle;
-  }
 
   onSizeChange(size) {
     this.itemSize = size;
@@ -462,35 +508,6 @@ export class DualSelectorComponent implements AfterViewInit {
     !this.optionStateActive.showSelectedItemsCount 
   }
 
-  onSearchMaxWidthChange(newMaxWidth:number) {
-    // angular의 form을 동적으로 만들 수 있는
-    // reactive form
-    clearTimeout(this.timer);
-    this.timer = window.setTimeout(()=>{
-      this.maxWidth = newMaxWidth
-    }, 100)
-  }
-
-  onSearchMaxHeightChange(newMaxHeight: number) {
-    clearTimeout(this.timer);
-    this.timer = window.setTimeout(()=>{
-      this.maxHeight = newMaxHeight
-    }, 100)
-  }
-
-  onSearchAvailableChange(keyword) {
-    clearTimeout(this.timer);
-    this.timer = window.setTimeout(()=>{
-      this.availableSearchKeyword = keyword;
-    }, 100)
-  }
-
-  onSearchSelectedChange(keyword) {
-    clearTimeout(this.timer);
-    this.timer = window.setTimeout(()=>{
-      this.selectedSearchKeyword = keyword;
-    },100)
-  }
 
   onSelect(state: string, item: MenuItem): void {
     const { id } = item;
