@@ -2,6 +2,7 @@
   box-sizing: border-box;
 }
 
+
 .container {
   .container__inner {
     position: relative;
@@ -100,12 +101,13 @@
           border: gray dotted 0.01rem;
         }
 
-        span {
-          display: block;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          overflow: hidden;
-        }
+        // .item__text {
+        //   display: block;
+        //   text-overflow: ellipsis;
+        //   white-space: nowrap;
+        //   overflow: hidden;
+        //   background-color: yellow;
+        // }
 
         &.xs {
           height: 2.8rem;
@@ -142,20 +144,5 @@
         }
       }
     }
-
-    // selected
-    // .container__selected {
-    //   display: flex;
-
-    //   .selected__list {
-    //     display: block;
-    //     flex: 10;
-    //   }
-    //   .selected__move {
-    //     flex: 1;
-    //     display: flex;
-    //     flex-direction: column;
-    //   }
-    // }
   }
 }

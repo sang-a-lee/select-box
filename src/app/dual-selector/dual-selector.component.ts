@@ -69,8 +69,10 @@ export class DualSelectorComponent implements AfterViewInit {
   @Input() data: MenuItem[];
   @Output() actionChange = new EventEmitter();
   @Output() reset = new EventEmitter();
-  @ViewChild("templateText") templateText: TemplateRef<any>;
-  @ViewChild("templateEmojiText") templateEmojiText: TemplateRef<any>;
+  @Input() templateText: TemplateRef<any>;
+  @Input() templateEmojiText: TemplateRef<any>;
+  // @ViewChild("templateText") templateText: TemplateRef<any>;
+  // @ViewChild("templateEmojiText") templateEmojiText: TemplateRef<any>;
 
   timer:number;
 

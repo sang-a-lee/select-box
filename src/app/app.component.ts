@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild, TemplateRef } from '@angular/core';
 
 import { emojiMenus, users } from '../resource/data';
 import { MenuItem } from './dual-selector/dual-selector.component';
@@ -18,6 +18,9 @@ export class AppComponent {
     id: 'id',
   };
   maxHeight:number = 500;
+
+  @ViewChild("templateText") templateText: TemplateRef<any>;
+  @ViewChild("templateEmojiText") templateEmojiText: TemplateRef<any>;
 
   ngOnInit(): void {
     this.initData();
