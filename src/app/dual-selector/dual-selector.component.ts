@@ -4,7 +4,8 @@
  * [x] dual (X) | app -> dual (O)
  * 
  * > 소메뉴
- * [ ] 하나씩만 옮기기 on/off => 커서가 옮겨가기
+ * [x] 하나씩만 옮기기 on/off => 커서가 옮겨가기
+ * [ ] 하나씩만 옮기기 on 일때, ctrl 클릭하면 멀티클릭 가능하게 하기
  * 
  * > 기능
  * [x] 드래그/드롭 직접 구현 - HTML5의 drag&drop
@@ -517,8 +518,8 @@ export class DualSelectorComponent implements AfterViewInit {
     if(!this.optionStateActive.moveOne) {
       this._toggleIdFocused(id, MenuState[state]);
 
-      switch(state) {
-        case 'available':
+      switch(MenuState[state]) {
+        case 0:
           if (
             this.menuState !== MenuState.none &&
             MenuState[state] !== this.menuState
@@ -531,7 +532,7 @@ export class DualSelectorComponent implements AfterViewInit {
             }
           break;
 
-        case 'selected':
+        case 1:
           if (
             this.menuState !== MenuState.none &&
             MenuState[state] !== this.menuState
@@ -549,8 +550,8 @@ export class DualSelectorComponent implements AfterViewInit {
       if(this.isShiftKeyDown) {
         let list:number[], from:number, to:number;
 
-        switch(state) {
-          case 'available':
+        switch(MenuState[state]) {
+          case 0:
             list = this.focused.map(focusedItemId => (
               this.available.findIndex(({id})=>id === focusedItemId)
             ))
@@ -566,10 +567,9 @@ export class DualSelectorComponent implements AfterViewInit {
             } else {
               this.isShiftKeyDown = false;
             }
-
             break;
 
-          case 'selected':
+          case 1:
             list = this.focused.map(focusedItemId => (
               this.selected.findIndex(({id})=>id === focusedItemId)
             ))        
@@ -585,18 +585,17 @@ export class DualSelectorComponent implements AfterViewInit {
             }else {
               this.isShiftKeyDown = false;
             }
-
             break;
         }
 
       } else {
 
-        switch (state) {
-          case 'available':
+        switch(MenuState[state]) {
+          case 0:
             this._toggleFocus(this.available, id);
             break;
-    
-          case 'selected':
+
+          case 1:
             this._toggleFocus(this.selected, id);
             break;
         }
