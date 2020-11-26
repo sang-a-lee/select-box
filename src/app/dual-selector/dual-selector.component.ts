@@ -128,10 +128,9 @@ export class DualSelectorComponent implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.available.map(item => item.template = this.templateEmojiText);
-    this.selected.map(item => item.template = this.templateEmojiText);
-    
-    // this._initItemsDragEvents();
+    this._initTemplate();
+    // this.available.map(item => item.template = this.templateEmojiText);
+    // this.selected.map(item => item.template = this.templateEmojiText);
   }
 
 
@@ -262,8 +261,6 @@ export class DualSelectorComponent implements AfterViewInit {
 
           break;
       }
-  
-
     } 
       
     return false;
@@ -298,7 +295,10 @@ export class DualSelectorComponent implements AfterViewInit {
     this.dragSourceElement.classList.remove('over');
   }
 
-
+  private _initTemplate() {
+    this.available.map(item => item.template = this.templateEmojiText);
+    this.selected.map(item => item.template = this.templateEmojiText);
+  }
 
   /**
    * id가 없으면 focused에 넣고, 있으면 focused에서 빼기
@@ -769,7 +769,10 @@ export class DualSelectorComponent implements AfterViewInit {
 
   /* 초기화 */
   resetItems(): void {
-    this.reset.emit('초기화');
+    this.reset.emit();
+    setTimeout(()=>{
+      this._initTemplate();
+    },0);
   }
 
   /* 메뉴 아이템 이동 (selected만) */

@@ -35,7 +35,7 @@ export class AppComponent {
       const { id } = this.mapPair;
       const idx = this.original.findIndex(item => item[id] === selectedId);
       const item = { ...this.original[idx] };
-      // delete item.ordinal;
+      delete item.ordinal;
       this.selected.push(item);
     });
 
@@ -43,7 +43,7 @@ export class AppComponent {
       const { id } = this.mapPair;
       const idx = this.original.findIndex(item => item[id] === availableId);
       const item = { ...this.original[idx] };
-      // delete item.ordinal;
+      delete item.ordinal;
       this.available.push(item);
     });
   }
