@@ -5,7 +5,7 @@
  * 
  * > 소메뉴
  * [x] 하나씩만 옮기기 on/off => 커서가 옮겨가기
- * [ ] 하나씩만 옮기기 on 일때, ctrl 클릭하면 멀티클릭 가능하게 하기
+ * [x] 하나씩만 옮기기 on 일때, ctrl 클릭하면 멀티클릭 가능하게 하기
  * 
  * > 기능
  * [x] 드래그/드롭 직접 구현 - HTML5의 drag&drop
@@ -56,9 +56,10 @@ enum ItemSize {
   m = 'm'
 }
 
-interface KeywordControl {
-  keyword: '',
-  control: FormControl,
+enum SpecialKey {
+  shift = "Shift",
+  command = "Meta",
+  ctrl = "Control"
 }
 
 
@@ -149,6 +150,7 @@ export class DualSelectorComponent implements AfterViewInit {
   maxHeight: number = 300;
 
   isShiftKeyDown: boolean = false;
+  isCtrlKeyDown: boolean = false;
 
   dragSourceElement:any;
   dragSourceItem:MenuItem;
@@ -157,28 +159,6 @@ export class DualSelectorComponent implements AfterViewInit {
 
   constructor() {}
 
-  private _initControl() {
-    Object.keys(this.controls).forEach(key => {
-      // debounce 
-      this.controls[key].control.valueChanges
-        .pipe(
-          debounceTime(300),
-          distinctUntilChanged()
-        )
-        .subscribe(data => {
-          if(this.controls[key].keyword !== undefined)
-            this.controls[key].keyword = data;
-
-          if(this.controls[key].width !== undefined)
-            this.controls[key].width = data;
-
-          if(this.controls[key].height !== undefined)
-            this.controls[key].height = data;
-
-        })
-
-    })
-  }
 
   ngOnInit(): void {
     [this.available, this.selected] = this._mapData(this.data);
@@ -208,15 +188,41 @@ export class DualSelectorComponent implements AfterViewInit {
     this.availableFocusedCount = 0;
   }
 
-  // shift key
-  @HostListener('document:keydown.shift', ['$event']) 
-  onShiftKeydownHandler(evt: KeyboardEvent) {
-    this.isShiftKeyDown = true;
+  @HostListener('window:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent) {
+    switch(event.key) {
+      // shift key DOWN
+      case SpecialKey.shift:
+        event.preventDefault();
+        this.isShiftKeyDown = true;
+        break;
+
+      case (SpecialKey.command):
+      case (SpecialKey.ctrl):        
+        // command, control key DOWN
+        event.preventDefault();
+        this.isCtrlKeyDown = true;
+        break;
+    }
   }
 
-  @HostListener('document:keyup.shift', ['$event']) 
-  onShiftKeyupHandler(evt: KeyboardEvent) {
-    this.isShiftKeyDown = false;
+
+  @HostListener('window:keyup', ['$event'])
+  onKeyUp(event: KeyboardEvent) {
+    switch(event.key) {
+      // shift key UP
+      case SpecialKey.shift:
+        event.preventDefault();
+        this.isShiftKeyDown = false;
+        break;
+
+      case (SpecialKey.command):
+      case (SpecialKey.ctrl):
+        // command, control key UP
+        event.preventDefault();
+        this.isCtrlKeyDown = false;
+        break;
+    }
   }
 
   /**
@@ -348,6 +354,30 @@ export class DualSelectorComponent implements AfterViewInit {
     this.dragSourceElement.style.opacity = '1';
     this.dragSourceElement.classList.remove('over');
   }
+
+  private _initControl() {
+    Object.keys(this.controls).forEach(key => {
+      // debounce 
+      this.controls[key].control.valueChanges
+        .pipe(
+          debounceTime(300),
+          distinctUntilChanged()
+        )
+        .subscribe(data => {
+          if(this.controls[key].keyword !== undefined)
+            this.controls[key].keyword = data;
+
+          if(this.controls[key].width !== undefined)
+            this.controls[key].width = data;
+
+          if(this.controls[key].height !== undefined)
+            this.controls[key].height = data;
+
+        })
+
+    })
+  }
+
 
   private _initTemplate() {
     this.available.map(item => item.template = this.templateEmojiText);
@@ -490,7 +520,7 @@ export class DualSelectorComponent implements AfterViewInit {
   }
 
 
-  onSizeChange(size) {
+  onSizeChange(size:string) {
     this.itemSize = size;
   }
 
@@ -515,7 +545,10 @@ export class DualSelectorComponent implements AfterViewInit {
   onSelect(state: string, item: MenuItem): void {
     const { id } = item;
 
-    if(!this.optionStateActive.moveOne) {
+    if(!this.optionStateActive.moveOne ||
+      this.optionStateActive.moveOne && this.isShiftKeyDown ||
+      this.optionStateActive.moveOne && this.isCtrlKeyDown
+      ) {
       this._toggleIdFocused(id, MenuState[state]);
 
       switch(MenuState[state]) {
@@ -549,7 +582,6 @@ export class DualSelectorComponent implements AfterViewInit {
 
       if(this.isShiftKeyDown) {
         let list:number[], from:number, to:number;
-
         switch(MenuState[state]) {
           case 0:
             list = this.focused.map(focusedItemId => (
@@ -588,18 +620,19 @@ export class DualSelectorComponent implements AfterViewInit {
             break;
         }
 
-      } else {
-
-        switch(MenuState[state]) {
-          case 0:
-            this._toggleFocus(this.available, id);
-            break;
-
-          case 1:
-            this._toggleFocus(this.selected, id);
-            break;
-        }
-
+      } else if(
+          !this.optionStateActive.moveOne ||
+          this.optionStateActive.moveOne && this.isCtrlKeyDown
+          ) {
+            switch(MenuState[state]) {
+              case 0:
+                this._toggleFocus(this.available, id);
+                break;
+    
+              case 1:
+                this._toggleFocus(this.selected, id);
+                break;
+            }
       }
 
 
@@ -614,8 +647,6 @@ export class DualSelectorComponent implements AfterViewInit {
       } else {
         switch (this.menuState) {
           case MenuState.available:
-            // available 인 경우 (좌측)
-            // -> remove 비활성화
             this.actionStateActive = {
               ...this.actionStateActive,
               toAvailable: false,
@@ -624,8 +655,6 @@ export class DualSelectorComponent implements AfterViewInit {
             break;
 
           case MenuState.selected:
-            // selected 인 경우 (좌측)
-            // <- add 비활성화
             this.actionStateActive = {
               ...this.actionStateActive,
               toAvailable: true,
