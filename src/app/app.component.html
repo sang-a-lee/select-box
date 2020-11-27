@@ -1,28 +1,102 @@
-<app-dual-selector
-  (actionChange)="onActionChanged($event)"
-  (reset)="onReset($event)"
-  [data]="menuItems"
-  [templateText]="templateText"
-  [templateEmojiText]="templateEmojiText"
-></app-dual-selector>
-
 <div class="container">
-  <div class="container__available">
-    <pre>{{ available | json }}</pre>
-  </div>
-  <div class="container__selected">
-    <pre>{{ selected | json }}</pre>
-  </div>
+	<app-dual-selector 
+		(actionChange)="onActionChanged($event)" 
+		(reset)="onReset($event)" 
+		[data]="menuItems"
+		[templateText]="templateText" 
+		[templateEmojiText]="templateEmojiText" [controls]="controls"
+		[optionStateActive]="optionStateActive" 
+		[itemSize]="itemSize">
+	</app-dual-selector>
+
+	<div class="setting">
+		<button class="setting__button setting__icon btn btn-default" (click)="onSettingMenuClick()">
+			<i class="fa fa-cog" aria-hidden="true"></i>
+		</button>
+		<ul class="setting__list" *ngIf="optionStateActive.optionMenu">
+			<li class="list__item" (click)="onTitleClick()">
+				타이틀
+				<span class="item__status">
+					{{
+							  optionStateActive.title ? "🟢":"🔴"
+						}}
+				</span>
+			</li>
+			<li *ngIf="optionStateActive.title" class="list__item">
+				<div>
+					<input type="text" class="form-control" type="text"
+						placeholder="{{controls.newAvailableTitle.keyword}}"
+						[formControl]="controls.newAvailableTitle.control" />
+					<input type="text" class="form-control" type="text"
+						placeholder="{{controls.newSelectedTitle.keyword}}"
+						[formControl]="controls.newSelectedTitle.control" />
+				</div>
+			</li>
+			<li class="list__item" (click)="onSearchClick()">검색
+				<span class="item__status">
+					{{
+							optionStateActive.search ? "🟢":"🔴"
+						}}
+				</span>
+			</li>
+			<li class="list__item" (click)="onMoveOnClick()">하나씩만 옮기기
+				<span class="item__status">
+					{{
+							optionStateActive.moveOne ? "🟢":"🔴"
+						}}
+				</span>
+			</li>
+			<li class="list__item" (click)="onSelectedItemsCountClick()">선택된 아이템 갯수 표시
+				<span class="item__status">
+					{{
+							optionStateActive.showSelectedItemsCount ? "🟢":"🔴"
+						}}
+				</span>
+			</li>
+			<li class="list__item">
+				<div>
+					<span>
+						아이템 크기
+					</span>
+					<input value="xs" type="radio" name="item__size" (change)="onSizeChange($event.target.value)">xs
+					<input value="s" type="radio" name="item__size" (change)="onSizeChange($event.target.value)"
+						checked>s
+					<input value="m" type="radio" name="item__size" (change)="onSizeChange($event.target.value)">m
+				</div>
+			</li>
+
+			<li class="list__item">
+				<div>
+					<input type="text" class="form-control" placeholder="가로 (현재: {{controls.newWidth.width}} px)"
+						[formControl]="controls.newWidth.control">
+
+					<input type="text" class="form-control" placeholder="세로 (현재: {{controls.newHeight.height}} px)"
+						[formControl]="controls.newHeight.control">
+				</div>
+			</li>
+		</ul>
+	</div>
+
+	<div class="content">
+		<div class="content__area content__available">
+			<pre>{{ available | json }}</pre>
+		</div>
+		<div class="content__area  content__selected">
+			<pre>{{ selected | json }}</pre>
+		</div>
+	</div>
+
 </div>
 
+
 <ng-template #templateText let-name="name">
-  <span class="item__text"> 
-    {{name}}
-  </span>
+	<span class="item__text">
+		{{name}}
+	</span>
 </ng-template>
 
 <ng-template #templateEmojiText let-name="name" let-emoji="emoji">
-  <span class="item__text">
-    {{emoji}} {{name}}
-  </span>
+	<span class="item__text">
+		{{emoji}} {{name}}
+	</span>
 </ng-template>

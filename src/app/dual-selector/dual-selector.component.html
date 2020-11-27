@@ -1,268 +1,72 @@
 <div class="container">
   <div class="container__inner">
-  <!-- SETTING MENU -->
-    <div class="setting">
-      <button class="setting__button setting__icon btn btn-default" (click)="onSettingMenuClick()">
-        <i class="fa fa-cog" aria-hidden="true"></i>
-      </button>
-      <ul
-        class="setting__list"
-        *ngIf="optionStateActive.optionMenu">
-        <li 
-          class="list__item"
-          (click)="onTitleClick()"
-          >
-          타이틀
-
-          <span
-            class="item__status"
-            >
-            {{
-              optionStateActive.title ? "🟢":"🔴"
-            }}
-          </span>
-        </li>
-        <li
-          *ngIf="optionStateActive.title"
-          class="list__item"
-        >
-          <div>
-            <input type="text" 
-              class="form-control" 
-              type="text" 
-              placeholder="{{controls.newAvailableTitle.keyword}}"
-              [formControl]="controls.newAvailableTitle.control"
-              />
-            <input type="text" 
-            class="form-control" 
-            type="text" 
-            placeholder="{{controls.newSelectedTitle.keyword}}" 
-            [formControl]="controls.newSelectedTitle.control"
-            />
-          </div>
-        </li>
-        <li 
-          class="list__item"
-          (click)="onSearchClick()"
-          >검색
-          <span
-            class="item__status"
-          >
-            {{
-              optionStateActive.search ? "🟢":"🔴"
-            }}
-          </span>
-        </li>
-        <li 
-          class="list__item"
-          (click)="onMoveOnClick()"
-          >하나씩만 옮기기
-          <span
-            class="item__status"
-          >
-            {{
-              optionStateActive.moveOne ? "🟢":"🔴"
-            }}
-          </span>
-        </li>
-        <li 
-          class="list__item"
-          (click)="onSelectedItemsCountClick()"
-          >선택된 아이템 갯수 표시
-          <span
-            class="item__status"  
-          >
-            {{
-              optionStateActive.showSelectedItemsCount ? "🟢":"🔴"
-            }}
-          </span>
-        </li>
-        <li
-          class="list__item"
-        >
-          <div>
-            <span>
-              아이템 크기
-            </span>
-            <input value="xs" 
-              type="radio" 
-              name="item__size" 
-              (change)="onSizeChange($event.target.value)">xs
-            <input value="s" 
-              type="radio" 
-              name="item__size" 
-              (change)="onSizeChange($event.target.value)" 
-              checked>s
-            <input value="m" 
-              type="radio" 
-              name="item__size" 
-              (change)="onSizeChange($event.target.value)">m
-          </div>
-        </li>
-      
-        <li class="list__item">
-          <div>
-            <input 
-              type="text" 
-              class="form-control" 
-              placeholder="가로 (현재: {{controls.newWidth.width}} px)"
-              [formControl]="controls.newWidth.control"
-            >
-
-            <input 
-              type="text" 
-              class="form-control" 
-              placeholder="세로 (현재: {{controls.newHeight.height}} px)"
-              [formControl]="controls.newHeight.control"
-            >
-          </div>
-        </li>
-    </ul>
-      
-    </div>
     <!-- AVAILABLE OPTIONS -->
-    <div 
-      class="container__available container__options"
-      [style.width.px]="controls.newWidth.width"
-    >
-      <input 
-      *ngIf="optionStateActive.search"
-      class="container__search form-control" 
-      type="text" 
-      placeholder="search"
-      [formControl]="controls.availableSearch.control"
-      >
-      
-      <ul 
-        class="container__list available__list list-group"
-        [style.height.px]="controls.newHeight.height"
-        >
-        <li 
-          *ngIf="optionStateActive.title"
-          class="list__title list-group-item">
+    <div class="container__available container__options" [style.width.px]="controls.newWidth.width">
+      <input *ngIf="optionStateActive.search" class="container__search form-control" type="text" placeholder="search"
+        [formControl]="controls.availableSearch.control">
+
+      <ul class="container__list available__list list-group" [style.height.px]="controls.newHeight.height">
+        <li *ngIf="optionStateActive.title" class="list__title list-group-item">
           {{controls.newAvailableTitle.keyword}}</li>
-        <span class="list__empty-text" 
-              *ngIf="available.length === 0 || getAvailable().length === 0"
-          >
+        <span class="list__empty-text" *ngIf="available.length === 0 || getAvailable().length === 0">
           {{
             available.length === 0 ? '아이템이' : '검색 결과가'
           }} 없습니다
         </span>
-        <li
-          *ngFor="let item of getAvailable()"
-          class="list__item list-group-item {{itemSize}}"
-          [class.active]="item.focused"
-          (click)="onSelect('available', item)"
-          title={{item.name}}
-          draggable="true"
-          (dragstart)="onDragStart($event, item, 'available')"
-          (dragover)="onDragOver($event, item, 'available')"
-          (dragenter)="onDragEnter($event, item, 'available')"
-          (dragleave)="onDragLeave($event, item, 'available')"
-          (drop)="onDrop($event, item, 'available')"
-          (dragend)="onDragEnd($event, item, 'available')"
-        >
-          <ng-container 
-            *ngTemplateOutlet="item.template; context:{name: item.name, emoji: item.emoji};">
+        <li *ngFor="let item of getAvailable()" class="list__item list-group-item {{itemSize}}"
+          [class.active]="item.focused" (click)="onSelect('available', item)" title={{item.name}} draggable="true"
+          (dragstart)="onDragStart($event, item, 'available')" (dragover)="onDragOver($event, item, 'available')"
+          (dragenter)="onDragEnter($event, item, 'available')" (dragleave)="onDragLeave($event, item, 'available')"
+          (drop)="onDrop($event, item, 'available')" (dragend)="onDragEnd($event, item, 'available')">
+          <ng-container *ngTemplateOutlet="item.template; context:{name: item.name, emoji: item.emoji};">
           </ng-container>
         </li>
       </ul>
-      <div 
-        *ngIf="optionStateActive.showSelectedItemsCount"
-        class="list__count">
-          {{availableFocusedCount}} / {{available.length}}
+      <div *ngIf="optionStateActive.showSelectedItemsCount" class="list__count">
+        {{availableFocusedCount}} / {{available.length}}
       </div>
     </div>
     <div class="container__action btn-group-vertical" role="group">
-      <button
-      [disabled]="!actionStateActive.reset"
-      type="button"
-      (click)="resetItems()"
-      class="btn btn-default btn-xs"
-      >
+      <button [disabled]="!actionStateActive.reset" type="button" (click)="resetItems()" class="btn btn-default btn-xs">
         <i class="fa fa-undo" aria-hidden="true"></i>
       </button>
-      <button
-        [disabled]="!actionStateActive.toSelectedAll"
-        (click)="toSelectedAll()"
-        class="btn btn-default btn-xs"
-      >
+      <button [disabled]="!actionStateActive.toSelectedAll" (click)="toSelectedAll()" class="btn btn-default btn-xs">
         <i class="fa fa-angle-double-right" aria-hidden="true"></i>
       </button>
-      <button
-        [disabled]="!actionStateActive.toAvailableAll"
-        (click)="toAvailableAll()"
-        class="btn btn-default btn-xs"
-      >
+      <button [disabled]="!actionStateActive.toAvailableAll" (click)="toAvailableAll()" class="btn btn-default btn-xs">
         <i class="fa fa-angle-double-left" aria-hidden="true"></i>
       </button>
-      <button
-      [disabled]="!actionStateActive.toSelected"
-      (click)="toSelected()"
-      class="btn btn-default btn-xs"
-      >
+      <button [disabled]="!actionStateActive.toSelected" (click)="toSelected()" class="btn btn-default btn-xs">
         <i class="fa fa-angle-right" aria-hidden="true"></i>
       </button>
-      <button
-        [disabled]="!actionStateActive.toAvailable"
-        (click)="toAvailable()"
-        class="btn btn-default btn-xs"
-      >
+      <button [disabled]="!actionStateActive.toAvailable" (click)="toAvailable()" class="btn btn-default btn-xs">
         <i class="fa fa-angle-left" aria-hidden="true"></i>
       </button>
     </div>
     <!-- SELECTED OPTIONS -->
-    <div 
-      class="container__selected container__options"
-      [style.width.px]="controls.newWidth.width"
-      >
-      <input 
-        *ngIf="optionStateActive.search"
-        class="container__search form-control" 
-        type="text" placeholder="search" 
-        [formControl]="controls.selectedSearch.control"
-        >
-      <ul 
-        class="container__list selected__list list-group"
-        [style.height.px]="controls.newHeight.height"
-        >
-        <li
-          *ngIf="optionStateActive.title"
-          class="list__title list-group-item">
-            {{controls.newSelectedTitle.keyword}}
-          </li>
-          <span class="list__empty-text" 
-          *ngIf="selected.length === 0 || getSelected().length === 0"
-          >
-            {{
+    <div class="container__selected container__options" [style.width.px]="controls.newWidth.width">
+      <input *ngIf="optionStateActive.search" class="container__search form-control" type="text" placeholder="search"
+        [formControl]="controls.selectedSearch.control">
+      <ul class="container__list selected__list list-group" [style.height.px]="controls.newHeight.height">
+        <li *ngIf="optionStateActive.title" class="list__title list-group-item">
+          {{controls.newSelectedTitle.keyword}}
+        </li>
+        <span class="list__empty-text" *ngIf="selected.length === 0 || getSelected().length === 0">
+          {{
               selected.length === 0 ? '아이템이' : '검색 결과가'
             }} 없습니다
-          </span>
-        <li
-          *ngFor="let item of getSelected();"
-          (click)="onSelect('selected', item)"
-          [class.active]="item.focused"
-          class="list__item list-group-item {{itemSize}}"
-          title={{item.name}}
-          draggable="true"
-          (dragstart)="onDragStart($event, item, 'selected')"
-          (dragover)="onDragOver($event, item, 'selected')"
-          (dragenter)="onDragEnter($event, item, 'selected')"
-          (dragleave)="onDragLeave($event, item, 'selected')"
-          (drop)="onDrop($event, item, 'selected')"
-          (dragend)="onDragEnd($event, item, 'selected')"
-        >
-          <ng-container 
-            *ngTemplateOutlet="item.template; context:{name: item.name, emoji: item.emoji};">
+        </span>
+        <li *ngFor="let item of getSelected();" (click)="onSelect('selected', item)" [class.active]="item.focused"
+          class="list__item list-group-item {{itemSize}}" title={{item.name}} draggable="true"
+          (dragstart)="onDragStart($event, item, 'selected')" (dragover)="onDragOver($event, item, 'selected')"
+          (dragenter)="onDragEnter($event, item, 'selected')" (dragleave)="onDragLeave($event, item, 'selected')"
+          (drop)="onDrop($event, item, 'selected')" (dragend)="onDragEnd($event, item, 'selected')">
+          <ng-container *ngTemplateOutlet="item.template; context:{name: item.name, emoji: item.emoji};">
           </ng-container>
         </li>
       </ul>
-      <div 
-        *ngIf="optionStateActive.showSelectedItemsCount"
-        class="list__count">
+      <div *ngIf="optionStateActive.showSelectedItemsCount" class="list__count">
         {{selectedFocusedCount}} / {{selected.length}}
       </div>
     </div>
   </div>
-</div>
-
