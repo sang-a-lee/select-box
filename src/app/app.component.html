@@ -1,12 +1,7 @@
 <div class="container">
-	<app-dual-selector 
-		(actionChange)="onActionChanged($event)" 
-		(reset)="onReset($event)" 
-		[data]="menuItems"
-		[templateText]="templateText" 
-		[templateEmojiText]="templateEmojiText" [controls]="controls"
-		[optionStateActive]="optionStateActive" 
-		[itemSize]="itemSize">
+	<app-dual-selector (updateSelectedAvailable)="onActionChanged($event)" (reset)="onReset($event)" [data]="menuItems"
+		[templateText]="templateText" [templateEmojiText]="templateEmojiText" [controls]="controls"
+		[optionStateActive]="optionStateActive" [itemSize]="itemSize">
 	</app-dual-selector>
 
 	<div class="setting">
