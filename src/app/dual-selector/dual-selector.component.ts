@@ -627,6 +627,7 @@ export class DualSelectorComponent implements AfterViewInit {
       this._initfocused(this.available, false);
       this._initfocused(this.selected, false);
       this._setCurrentItemState(ItemState.none);
+      this.focusedItems = [];
 
       this.selectedFocusedCount = 0;
       this.availableFocusedCount = 0;
