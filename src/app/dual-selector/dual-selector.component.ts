@@ -82,7 +82,6 @@ export class DualSelectorComponent implements AfterViewInit {
 
   // template들
   @Input() templateText: TemplateRef<any>;
-  @Input() templateEmojiText: TemplateRef<any>;
 
   // 소메뉴에 대한 값이 있는 변수
   @Input() controls: {
@@ -400,7 +399,6 @@ export class DualSelectorComponent implements AfterViewInit {
    */
   private _initControl() {
     Object.keys(this.controls).forEach(key => {
-      // debounce 
       this.controls[key].control.valueChanges
         .pipe(
           debounceTime(300),
@@ -426,8 +424,8 @@ export class DualSelectorComponent implements AfterViewInit {
    * template을 각 item들에 달아주는 함수
    */
   private _initTemplate() {
-    this.available.map(item => item.template = this.templateEmojiText);
-    this.selected.map(item => item.template = this.templateEmojiText);
+    this.available.map(item => item.template = this.templateText);
+    this.selected.map(item => item.template = this.templateText);
   }
 
   /**

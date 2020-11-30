@@ -17,6 +17,9 @@
           [class.active]="item.focused" (click)="onSelect('available', item)" title={{item.name}}>
           <ng-container *ngTemplateOutlet="item.template; context:{name: item.name, emoji: item.emoji};">
           </ng-container>
+          <span *ngIf="!item.template" class="item__text">
+            {{item.name}}
+          </span>
         </li>
       </ul>
       <div *ngIf="optionStateActive.showSelectedItemsCount" class="list__count">
@@ -60,6 +63,9 @@
           (drop)="onDrop($event, item, 'selected')" (dragend)="onDragEnd($event, 'selected')">
           <ng-container *ngTemplateOutlet="item.template; context:{name: item.name, emoji: item.emoji};">
           </ng-container>
+          <span *ngIf="!item.template" class="item__text">
+            {{item.name}}
+          </span>
         </li>
       </ul>
       <div *ngIf="optionStateActive.showSelectedItemsCount" class="list__count">
