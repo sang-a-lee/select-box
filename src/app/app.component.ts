@@ -24,12 +24,12 @@ export class AppComponent {
   mapPair: any = {
     id: 'id',
   };
-  
+
   optionStateActive = {
-    optionMenu: true,
+    optionMenu: false,
     title: true,
     search: true,
-    moveOne: true,
+    moveOne: false,
     showSelectedItemsCount: true
   }
 

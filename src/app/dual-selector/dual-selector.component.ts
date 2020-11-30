@@ -1,4 +1,5 @@
 import { Component, AfterViewInit, Input, Output, EventEmitter, HostListener, TemplateRef } from '@angular/core';
+import { FormControl } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from "rxjs/operators";
 
 export class MenuItem {
@@ -83,15 +84,42 @@ export class DualSelectorComponent implements AfterViewInit {
   @Input() templateText: TemplateRef<any>;
   @Input() templateEmojiText: TemplateRef<any>;
 
-  // 소메뉴에 대한 값이 있는 변수로,
-  // {
-  //    keyword || width || height,
-  //    control: FormControl() 
-  // }
-  // 로 구성되어있음
-  @Input() controls;
+  // 소메뉴에 대한 값이 있는 변수
+  @Input() controls: {
+    availableSearch: {
+      keyword: string,
+      control: FormControl
+    },
+    selectedSearch: {
+      keyword: string,
+      control: FormControl
+    },
+    newAvailableTitle: {
+      keyword: string,
+      control: FormControl
+    },
+    newSelectedTitle: {
+      keyword: string,
+      control: FormControl
+    },
+    newHeight: {
+      height: string,
+      control: FormControl
+    },
+    newWidth: {
+      width: string,
+      control: FormControl
+    }
+  };
   // 소메뉴의 각 아이템들(타이틀 ON/OFF, 검색 ON/OFF ...)의 활성 상태에 대한 변수
-  @Input() optionStateActive;
+  @Input() optionStateActive: {
+    optionMenu: boolean,
+    title: boolean,
+    search: boolean,
+    moveOne: boolean,
+    showSelectedItemsCount: boolean
+  };
+  // 아이템의 크기 (xs, s, m)
   @Input() itemSize: ItemSize;
 
   // selected와 available의 현재 상태를 상위 컴포넌트에게 전달하는 event emiiter
@@ -220,6 +248,7 @@ export class DualSelectorComponent implements AfterViewInit {
    * @param state 
    */
   onDragStart(event: DragEvent, item: MenuItem, state: string) {
+    if (ItemState[state] === 0) return;
     this.dragSourceElement = event.target;
     this.dragSourceItem = item;
     this._setCurrentItemState(ItemState[state]);
@@ -231,10 +260,11 @@ export class DualSelectorComponent implements AfterViewInit {
 
   /**
    * drag 가능 아이템에 마우스를 대고있으면 계속 호출되는 함수
-   * @param event 다른 item
+   * @param {DragEvent} event 다른 item
+   * @param {string} state 다른 item의 현재 state (available || selected)
    */
-  onDragOver(event: DragEvent, item: MenuItem, state: string) {
-    if (this.currentSelectedItemState !== ItemState[state]) return false;
+  onDragOver(event: DragEvent, state: string) {
+    if (ItemState[state] === 0) return;
 
     if (event.preventDefault) {
       event.preventDefault();
@@ -247,10 +277,11 @@ export class DualSelectorComponent implements AfterViewInit {
 
   /**
    * 다른 item 위에 들어가면, !단 한번만! 호출되는 함수
-   * @param event 다른 item
+   * @param {DragEvent} event 다른 item
+   * @param {string} state 다른 item의 현재 state (available || selected)
    */
-  onDragEnter(event: DragEvent, item: MenuItem, state: string) {
-    if (this.currentSelectedItemState !== ItemState[state]) return false;
+  onDragEnter(event: DragEvent, state: string) {
+    if (ItemState[state] === 0) return;
 
     const otherNode = <HTMLElement>event.target;
     otherNode.classList.add('over');
@@ -260,9 +291,10 @@ export class DualSelectorComponent implements AfterViewInit {
   /**
    * drag 포커스가 떠날 때 한 번 호출되는 함수
    * @param event 다른 item
+   * @param {string} state 다른 item의 현재 state (available || selected)
    */
-  onDragLeave(event: DragEvent, item: MenuItem, state: string) {
-    if (this.currentSelectedItemState !== ItemState[state]) return false;
+  onDragLeave(event: DragEvent, state: string) {
+    if (ItemState[state] === 0) return;
 
     const otherNode = <HTMLElement>event.target;
     otherNode.classList.remove('over');
@@ -272,11 +304,12 @@ export class DualSelectorComponent implements AfterViewInit {
   /**
    * 다른 item에 떨어뜨리면 호출되는 함수
    * @param event 다른 item
+   * @param {string} state 다른 item의 현재 state (available || selected)
    */
   onDrop(event: DragEvent, otherItem: MenuItem, state: string) {
     const otherElement = <HTMLElement>event.target;
 
-    if (this.currentSelectedItemState !== ItemState[state]) return false;
+    if (ItemState[state] === 0) return;
     if (!otherElement.classList.contains('list__item')) return false;
 
 
@@ -288,27 +321,12 @@ export class DualSelectorComponent implements AfterViewInit {
     if (this.dragSourceElement !== this) {
       let sourceOrdinal: number, otherOrdinal: number;
 
-      switch (ItemState[state]) {
-        case 0:
-          // Available
-          sourceOrdinal = this.dragSourceItem.ordinal;
-          otherOrdinal = otherItem.ordinal;
+      // Selected
+      sourceOrdinal = this.dragSourceItem.ordinal;
+      otherOrdinal = otherItem.ordinal;
 
-          [this.available[sourceOrdinal].ordinal, this.available[otherOrdinal].ordinal] =
-            [this.available[otherOrdinal].ordinal, this.available[sourceOrdinal].ordinal]
-
-          break;
-
-        case 1:
-          // Selected
-          sourceOrdinal = this.dragSourceItem.ordinal;
-          otherOrdinal = otherItem.ordinal;
-
-          [this.selected[sourceOrdinal].ordinal, this.selected[otherOrdinal].ordinal] =
-            [this.selected[otherOrdinal].ordinal, this.selected[sourceOrdinal].ordinal]
-
-          break;
-      }
+      [this.selected[sourceOrdinal].ordinal, this.selected[otherOrdinal].ordinal] =
+        [this.selected[otherOrdinal].ordinal, this.selected[sourceOrdinal].ordinal]
     }
 
     return false;
@@ -319,8 +337,8 @@ export class DualSelectorComponent implements AfterViewInit {
    * 뭐가 되었든, 드래그가 끝나면 호출되는 item
    * @param event 현재 item
    */
-  onDragEnd(event: DragEvent, item: MenuItem, state: string) {
-    if (this.currentSelectedItemState !== ItemState[state]) return false;
+  onDragEnd(event: DragEvent, state: string) {
+    if (ItemState[state] === 0) return;
 
     switch (ItemState[state]) {
       case 0:
@@ -342,6 +360,7 @@ export class DualSelectorComponent implements AfterViewInit {
     this.dragSourceElement.style.opacity = '1';
     this.dragSourceElement.classList.remove('over');
   }
+
 
   /* ********** 내부 함수 ********** */
   /**

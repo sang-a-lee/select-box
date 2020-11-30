@@ -14,10 +14,7 @@
           }} 없습니다
         </span>
         <li *ngFor="let item of getAvailable()" class="list__item list-group-item {{itemSize}}"
-          [class.active]="item.focused" (click)="onSelect('available', item)" title={{item.name}} draggable="true"
-          (dragstart)="onDragStart($event, item, 'available')" (dragover)="onDragOver($event, item, 'available')"
-          (dragenter)="onDragEnter($event, item, 'available')" (dragleave)="onDragLeave($event, item, 'available')"
-          (drop)="onDrop($event, item, 'available')" (dragend)="onDragEnd($event, item, 'available')">
+          [class.active]="item.focused" (click)="onSelect('available', item)" title={{item.name}}>
           <ng-container *ngTemplateOutlet="item.template; context:{name: item.name, emoji: item.emoji};">
           </ng-container>
         </li>
@@ -58,9 +55,9 @@
         </span>
         <li *ngFor="let item of getSelected();" (click)="onSelect('selected', item)" [class.active]="item.focused"
           class="list__item list-group-item {{itemSize}}" title={{item.name}} draggable="true"
-          (dragstart)="onDragStart($event, item, 'selected')" (dragover)="onDragOver($event, item, 'selected')"
-          (dragenter)="onDragEnter($event, item, 'selected')" (dragleave)="onDragLeave($event, item, 'selected')"
-          (drop)="onDrop($event, item, 'selected')" (dragend)="onDragEnd($event, item, 'selected')">
+          (dragstart)="onDragStart($event, item, 'selected')" (dragover)="onDragOver($event, 'selected')"
+          (dragenter)="onDragEnter($event, 'selected')" (dragleave)="onDragLeave($event, 'selected')"
+          (drop)="onDrop($event, item, 'selected')" (dragend)="onDragEnd($event, 'selected')">
           <ng-container *ngTemplateOutlet="item.template; context:{name: item.name, emoji: item.emoji};">
           </ng-container>
         </li>
