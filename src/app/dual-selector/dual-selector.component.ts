@@ -542,18 +542,6 @@ export class DualSelectorComponent implements AfterViewInit {
   }
 
   /**
-   * 인자로 받은 list(available, selected) 에서 idx1과 idx2의 자리를 바꿔주는 함수
-   * @param list available || seleted
-   * @param idx1 
-   * @param idx2 
-   */
-  private _swap(list: MenuItem[], idx1: number, idx2: number): void {
-    [list[idx1], list[idx2]] = [list[idx2], list[idx1]];
-    list[idx1].ordinal = idx1;
-    list[idx2].ordinal = idx2;
-  }
-
-  /**
    * 드래그(onDragEnd)나, 아이템 이동 이후에 호출되는 함수로,
    * 바뀐 selected와 available을 각각 id들만 모아 부모에게 이벤트를 보냄
    */
