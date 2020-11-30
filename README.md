@@ -12,7 +12,6 @@
     (reset)="onReset($event)" 
     [data]="menuItems"
     [templateText]="templateText" 
-    [templateEmojiText]="templateEmojiText"
     [controls]="controls"
     [optionStateActive]="optionStateActive" 
     [itemSize]="itemSize">
