@@ -627,12 +627,12 @@ export class DualSelectorComponent implements AfterViewInit {
       this._initfocused(this.available, false);
       this._initfocused(this.selected, false);
       this._setCurrentItemState(ItemState.none);
+
       this.selectedFocusedCount = 0;
       this.availableFocusedCount = 0;
       return;
     }
 
-    this._setCurrentItemState(ItemState[state]);
 
     if (
       (!this.optionStateActive.moveOne) ||
@@ -647,7 +647,7 @@ export class DualSelectorComponent implements AfterViewInit {
           case 0:
             list = this.focusedItems.map(focusedItemId => (
               this.available.findIndex(({ id }) => id === focusedItemId)
-            ))
+            )).filter(id => id > -1)
 
             from = Math.min(...list);
             to = Math.max(...list);
@@ -665,7 +665,7 @@ export class DualSelectorComponent implements AfterViewInit {
           case 1:
             list = this.focusedItems.map(focusedItemId => (
               this.selected.findIndex(({ id }) => id === focusedItemId)
-            ))
+            )).filter(id => id > -1)
 
             from = Math.min(...list);
             to = Math.max(...list);
