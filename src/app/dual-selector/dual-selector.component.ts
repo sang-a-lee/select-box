@@ -187,6 +187,7 @@ export class DualSelectorComponent implements AfterViewInit {
   onEscapeKeydownHandler(event: KeyboardEvent) {
     this._initfocused(this.selected, false);
     this._initfocused(this.available, false);
+    this._setCurrentItemState(ItemState.none);
     this.focusedItems = [];
     this.selectedFocusedCount = 0;
     this.availableFocusedCount = 0;
@@ -618,9 +619,25 @@ export class DualSelectorComponent implements AfterViewInit {
   onSelect(state: string, item: MenuItem): void {
     const { id } = item;
 
-    if (!this.optionStateActive.moveOne ||
-      this.optionStateActive.moveOne && this.isShiftKeyDown ||
-      this.optionStateActive.moveOne && this.isCtrlKeyDown
+    if (
+      (!this.optionStateActive.moveOne) &&
+      (this.currentSelectedItemState !== ItemState.none) &&
+      (this.currentSelectedItemState !== ItemState[state])
+    ) {
+      this._initfocused(this.available, false);
+      this._initfocused(this.selected, false);
+      this._setCurrentItemState(ItemState.none);
+      this.selectedFocusedCount = 0;
+      this.availableFocusedCount = 0;
+      return;
+    }
+
+    this._setCurrentItemState(ItemState[state]);
+
+    if (
+      (!this.optionStateActive.moveOne) ||
+      (this.optionStateActive.moveOne && this.isShiftKeyDown) ||
+      (this.optionStateActive.moveOne && this.isCtrlKeyDown)
     ) {
       this._toggleIdFocused(id, ItemState[state]);
 
@@ -665,8 +682,8 @@ export class DualSelectorComponent implements AfterViewInit {
         }
 
       } else if (
-        !this.optionStateActive.moveOne ||
-        this.optionStateActive.moveOne && this.isCtrlKeyDown
+        (!this.optionStateActive.moveOne) ||
+        (this.optionStateActive.moveOne && this.isCtrlKeyDown)
       ) {
         switch (ItemState[state]) {
           case 0:
